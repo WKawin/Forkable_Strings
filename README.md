@@ -9,4 +9,4 @@ This repo contains a short and incomplete Isabelle proof script for the section 
 
 - This work doesn't include work on the proofs of Proposition 4.17 and Lemma 4.18, and I will add more lemmas, which will help prove these two, when they get improved and cleaned
 
-- For creating document, look in Forkable_Strings.Zip, I now use [quick_and_dirty] mode as there are two 'sorry's
+- For document, it's "~/output/document.pdf"
