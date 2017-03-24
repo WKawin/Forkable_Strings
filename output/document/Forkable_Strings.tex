@@ -1,0 +1,1098 @@
+%
+\begin{isabellebody}%
+\setisabellecontext{Forkable{\isacharunderscore}Strings}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Forkable{\isacharunderscore}Strings\ \isakeyword{imports}\ Main\ {\isachardoublequoteopen}{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}HOL{\isacharslash}List{\isachardoublequoteclose}\ \isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\begin{isamarkuptext}%
+We will use True as 1 and False as 0 in characteristic strings; we might think about each bool
+value answers to the question 'is this slot controlled by an adversarial player?'.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ nattree\ {\isacharequal}\ Empty\ {\isacharbar}\ Node\ nat\ {\isachardoublequoteopen}nattree\ list{\isachardoublequoteclose}\isanewline
+\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ lt{\isacharunderscore}nat{\isacharunderscore}tree\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nattree\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}lt{\isacharunderscore}nat{\isacharunderscore}tree\ n\ Empty\ {\isacharequal}\ True{\isachardoublequoteclose}\ \isanewline
+{\isacharbar}\ {\isachardoublequoteopen}lt{\isacharunderscore}nat{\isacharunderscore}tree\ n\ {\isacharparenleft}Node\ m\ {\isacharunderscore}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}n\ {\isacharless}\ m{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lt{\isacharunderscore}nat{\isacharunderscore}tree{\isacharunderscore}lt\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}n\ {\isacharless}\ m{\isacharparenright}\ {\isasymlongleftrightarrow}\ lt{\isacharunderscore}nat{\isacharunderscore}tree\ n\ {\isacharparenleft}Node\ m\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lt{\isacharunderscore}nat{\isacharunderscore}tree{\isacharunderscore}ge\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}n\ {\isasymge}\ m{\isacharparenright}\ {\isasymlongleftrightarrow}\ {\isasymnot}\ lt{\isacharunderscore}nat{\isacharunderscore}tree\ n\ {\isacharparenleft}Node\ m\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ increasing{\isacharunderscore}tree\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}increasing{\isacharunderscore}tree\ Empty\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}increasing{\isacharunderscore}tree\ {\isacharparenleft}Node\ {\isacharunderscore}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\ \isanewline
+{\isacharbar}\ {\isachardoublequoteopen}increasing{\isacharunderscore}tree\ {\isacharparenleft}Node\ n\ l{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}x\ {\isasymin}\ set\ l{\isachardot}\ increasing{\isacharunderscore}tree\ x\ {\isasymand}\ lt{\isacharunderscore}nat{\isacharunderscore}tree\ n\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ increasing{\isacharunderscore}tree{\isacharunderscore}empty{\isacharunderscore}branch{\isacharunderscore}list\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}increasing{\isacharunderscore}tree\ {\isacharparenleft}Node\ n\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ increasing{\isacharunderscore}tree{\isacharunderscore}ind\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymforall}x\ {\isasymin}\ set\ l{\isachardot}\ increasing{\isacharunderscore}tree\ x\ {\isasymand}\ lt{\isacharunderscore}nat{\isacharunderscore}tree\ n\ x{\isacharparenright}\ {\isasymlongleftrightarrow}\ increasing{\isacharunderscore}tree\ {\isacharparenleft}Node\ n\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}smt\ increasing{\isacharunderscore}tree{\isachardot}elims{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ increasing{\isacharunderscore}tree{\isachardot}elims{\isacharparenleft}{\isadigit{3}}{\isacharparenright}\ length{\isacharunderscore}greater{\isacharunderscore}{\isadigit{0}}{\isacharunderscore}conv\ length{\isacharunderscore}pos{\isacharunderscore}if{\isacharunderscore}in{\isacharunderscore}set\ nattree{\isachardot}distinct{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ nattree{\isachardot}inject{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\ \ \ \ \ \isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ ListMax\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}ListMax\ l\ {\isacharequal}\ foldr\ max\ l\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ max{\isacharunderscore}of{\isacharunderscore}the{\isacharunderscore}list{\isacharunderscore}{\isadigit{0}}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}ListMax\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ ListMax{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ max{\isacharunderscore}of{\isacharunderscore}the{\isacharunderscore}list\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}x\ {\isasymin}\ set\ l{\isachardot}\ x\ {\isasymle}\ ListMax\ l{\isachardoublequoteclose}\ \ \ \ \isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induction\ l{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ Nil\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ auto\ \isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isacharparenleft}Cons\ a\ l{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}ListMax\ {\isacharparenleft}Cons\ a\ l{\isacharparenright}\ {\isacharequal}\ max\ a\ {\isacharparenleft}ListMax\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ ListMax{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}ListMax\ l\ {\isasymle}\ ListMax\ {\isacharparenleft}Cons\ a\ l{\isacharparenright}\ {\isasymand}\ a\ {\isasymle}\ ListMax\ {\isacharparenleft}Cons\ a\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ {\isacartoucheopen}ListMax\ {\isacharparenleft}a\ {\isacharhash}\ l{\isacharparenright}\ {\isacharequal}\ max\ a\ {\isacharparenleft}ListMax\ l{\isacharparenright}{\isacartoucheclose}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ Cons{\isachardot}IH\ \isacommand{by}\isamarkupfalse%
+\ auto\ \isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ height{\isacharunderscore}branch\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}height{\isacharunderscore}branch\ Empty\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}height{\isacharunderscore}branch\ {\isacharparenleft}Node\ {\isacharunderscore}\ l{\isacharparenright}\ {\isacharequal}\ {\isadigit{1}}\ {\isacharplus}\ ListMax\ {\isacharparenleft}map\ height{\isacharunderscore}branch\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ height{\isacharunderscore}branch{\isacharunderscore}empty{\isacharunderscore}list\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}height{\isacharunderscore}branch\ {\isacharparenleft}Node\ n\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ height{\isacharunderscore}branch{\isacharunderscore}lt\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}x\ {\isasymin}\ set\ l{\isachardot}\ height{\isacharunderscore}branch\ x\ {\isacharless}\ height{\isacharunderscore}branch\ {\isacharparenleft}Node\ n\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ le{\isacharunderscore}imp{\isacharunderscore}less{\isacharunderscore}Suc{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ height\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}height\ Empty\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}height\ {\isacharparenleft}Node\ n\ bl{\isacharparenright}\ {\isacharequal}\ ListMax\ {\isacharparenleft}map\ height{\isacharunderscore}branch\ bl{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ height{\isacharunderscore}empty{\isacharunderscore}list\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}height\ {\isacharparenleft}Node\ n\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ height{\isacharunderscore}ge\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}x\ {\isasymin}\ set\ l{\isachardot}\ height{\isacharunderscore}branch\ x\ {\isasymle}\ height\ {\isacharparenleft}Node\ n\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ depth{\isacharunderscore}branch\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nattree\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}depth{\isacharunderscore}branch\ m\ Empty\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}depth{\isacharunderscore}branch\ m\ {\isacharparenleft}Node\ n\ l{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ m\ {\isacharequal}\ n\ then\ {\isadigit{1}}\ else\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}case\ ListMax\ {\isacharparenleft}map\ {\isacharparenleft}depth{\isacharunderscore}branch\ m{\isacharparenright}\ l{\isacharparenright}\ of\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isadigit{0}}\ {\isasymRightarrow}\ {\isadigit{0}}\ {\isacharbar}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Suc\ n\ {\isasymRightarrow}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ depth{\isacharunderscore}branch{\isacharunderscore}eq\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}depth{\isacharunderscore}branch\ m\ {\isacharparenleft}Node\ m\ l{\isacharparenright}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ listmax{\isacharunderscore}{\isadigit{0}}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymforall}\ x\ {\isasymin}\ set\ l{\isachardot}\ f\ x\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\ {\isasymlongrightarrow}\ ListMax\ {\isacharparenleft}map\ f\ l{\isacharparenright}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induction\ l{\isacharparenright}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ Nil\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isacharparenleft}Cons\ a\ l{\isacharparenright}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}ListMax\ {\isacharparenleft}map\ f\ {\isacharparenleft}Cons\ a\ l{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ max\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}ListMax\ {\isacharparenleft}map\ f\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ ListMax{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}f\ a\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}\ x\ {\isasymin}\ set\ l{\isachardot}\ f\ x\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\ {\isasymlongrightarrow}\ ListMax\ {\isacharparenleft}map\ f\ {\isacharparenleft}Cons\ a\ l{\isacharparenright}{\isacharparenright}\ \ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ Cons{\isachardot}IH\ \isacommand{by}\isamarkupfalse%
+\ linarith\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ simp\ \isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\ \ \isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ depth{\isacharunderscore}branch{\isacharunderscore}empty{\isacharunderscore}branch{\isacharunderscore}list\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}depth{\isacharunderscore}branch\ m\ {\isacharparenleft}Node\ n\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ of{\isacharunderscore}bool\ {\isacharparenleft}m\ {\isacharequal}\ n{\isacharparenright}{\isachardoublequoteclose}\ \ \ \ \isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}cases\ {\isachardoublequoteopen}m\ {\isacharequal}\ n{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ True\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ simp\ \isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ False\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}thesis\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ depth{\isacharunderscore}branch{\isacharunderscore}ne{\isacharunderscore}nf\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ \isanewline
+{\isachardoublequoteopen}{\isacharparenleft}{\isasymforall}\ x\ {\isasymin}\ set\ l{\isachardot}\ depth{\isacharunderscore}branch\ m\ x\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\ {\isasymand}\ m\ {\isasymnoteq}\ n\ {\isasymlongrightarrow}\ depth{\isacharunderscore}branch\ m\ {\isacharparenleft}Node\ n\ l{\isacharparenright}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\ \isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ depth\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}depth\ {\isacharunderscore}\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\ \isanewline
+{\isacharbar}\ {\isachardoublequoteopen}depth\ Empty\ n\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}depth\ {\isacharparenleft}Node\ n\ bl{\isacharparenright}\ m\ {\isacharequal}\ ListMax\ {\isacharparenleft}map\ {\isacharparenleft}depth{\isacharunderscore}branch\ m{\isacharparenright}\ bl{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ depth{\isacharunderscore}root{\isacharunderscore}ge\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}m\ {\isachargreater}\ {\isadigit{0}}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}x\ {\isasymin}\ set\ l{\isachardot}\ depth{\isacharunderscore}branch\ m\ x\ \ {\isasymle}\ depth\ {\isacharparenleft}Node\ n\ l{\isacharparenright}\ m{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ gr{\isadigit{0}}{\isacharunderscore}conv{\isacharunderscore}Suc\ image{\isacharunderscore}eqI\ \isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\ \ \ \isanewline
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ getFrom{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ list\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}getFrom{\isacharprime}\ {\isacharbrackleft}{\isacharbrackright}\ n\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}getFrom{\isacharprime}\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isadigit{0}}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}getFrom{\isacharprime}\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ getFrom{\isacharprime}\ xs\ n{\isachardoublequoteclose}\ \ \isanewline
+\isanewline
+\isanewline
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ H\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ list\ {\isasymRightarrow}\ nat\ set{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}H\ l\ {\isacharequal}\ {\isacharbraceleft}x{\isachardot}\ {\isasymnot}\ getFrom{\isacharprime}\ {\isacharparenleft}False{\isacharhash}l{\isacharparenright}\ x{\isacharbraceright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ H{\isacharunderscore}{\isadigit{0}}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymin}\ H\ l{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ H{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ getFrom{\isacharunderscore}suc{\isacharunderscore}eq{\isacharunderscore}H\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymnot}\ getFrom{\isacharprime}\ l\ x\ {\isasymlongleftrightarrow}\ Suc\ x\ {\isasymin}\ H\ l{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ H{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\ \isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ ListSum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}ListSum\ l\ {\isacharequal}\ foldr\ plus\ l\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ count{\isacharunderscore}node\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nattree\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}count{\isacharunderscore}node\ {\isacharunderscore}\ Empty\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}count{\isacharunderscore}node\ m\ {\isacharparenleft}Node\ n\ bl{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}of{\isacharunderscore}bool\ {\isacharparenleft}m\ {\isacharequal}\ n{\isacharparenright}{\isacharparenright}\ {\isacharplus}\ ListSum\ {\isacharparenleft}map\ {\isacharparenleft}count{\isacharunderscore}node\ m{\isacharparenright}\ bl{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ count{\isacharunderscore}node{\isacharunderscore}empty{\isacharunderscore}branch{\isacharunderscore}list\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}count{\isacharunderscore}node\ m\ {\isacharparenleft}Node\ n\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ of{\isacharunderscore}bool\ {\isacharparenleft}m\ {\isacharequal}\ n{\isacharparenright}{\isachardoublequoteclose}%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ unique{\isacharunderscore}node\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}unique{\isacharunderscore}node\ t\ n\ {\isacharequal}\ {\isacharparenleft}count{\isacharunderscore}node\ n\ t\ {\isacharequal}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ unique{\isacharunderscore}nodes{\isacharunderscore}by{\isacharunderscore}nat{\isacharunderscore}set\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat\ set\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ {\isachardoublequoteopen}unique{\isacharunderscore}nodes{\isacharunderscore}by{\isacharunderscore}nat{\isacharunderscore}set\ t\ s\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}x\ {\isasymin}\ s{\isachardot}\ unique{\isacharunderscore}node\ t\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ uniqueH{\isacharunderscore}tree\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ bool\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}uniqueH{\isacharunderscore}tree\ t\ l\ {\isacharequal}\ \ unique{\isacharunderscore}nodes{\isacharunderscore}by{\isacharunderscore}nat{\isacharunderscore}set\ t\ {\isacharparenleft}H\ l{\isacharparenright}{\isachardoublequoteclose}\ \ \ \ \isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ uniqueH{\isacharunderscore}tree{\isacharunderscore}in{\isacharunderscore}imp{\isacharunderscore}l\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}\ x\ {\isasymin}\ H\ l{\isachardot}\ uniqueH{\isacharunderscore}tree\ t\ l\ {\isasymlongrightarrow}\ unique{\isacharunderscore}node\ t\ x{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ uniqueH{\isacharunderscore}tree{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\ \isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ uniqueH{\isacharunderscore}tree{\isacharunderscore}in{\isacharunderscore}imp{\isacharunderscore}r\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymforall}\ x\ {\isasymin}\ H\ l{\isachardot}\ unique{\isacharunderscore}node\ t\ x{\isacharparenright}\ {\isasymlongrightarrow}\ uniqueH{\isacharunderscore}tree\ t\ l{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ uniqueH{\isacharunderscore}tree{\isacharunderscore}def\ unique{\isacharunderscore}nodes{\isacharunderscore}by{\isacharunderscore}nat{\isacharunderscore}set{\isachardot}simps\ \isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ max{\isacharunderscore}node\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}max{\isacharunderscore}node\ Empty\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}max{\isacharunderscore}node\ {\isacharparenleft}Node\ n\ bl{\isacharparenright}\ {\isacharequal}\ ListMax\ {\isacharparenleft}n\ {\isacharhash}\ {\isacharparenleft}map\ max{\isacharunderscore}node\ bl{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ ListSum{\isacharunderscore}{\isadigit{0}}\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}{\isachardoublequoteopen}{\isacharparenleft}{\isasymforall}x\ {\isasymin}\ set\ l{\isachardot}\ x\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\ {\isasymlongrightarrow}\ ListSum\ l\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\ \isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induction\ l{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ Nil\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isacharparenleft}Cons\ a\ l{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ simp\ \isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ max{\isacharunderscore}node{\isacharunderscore}max\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}\ m{\isachardot}\ max{\isacharunderscore}node\ t\ {\isacharless}\ m\ \ {\isasymlongrightarrow}\ count{\isacharunderscore}node\ m\ t\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induction\ t{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ Empty\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ simp\ \isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}max{\isacharunderscore}node\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ ListMax\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharhash}\ {\isacharparenleft}map\ max{\isacharunderscore}node\ x{\isadigit{2}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\ \isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x\ {\isasymin}\ set\ x{\isadigit{2}}{\isachardot}\ max{\isacharunderscore}node\ x\ {\isasymle}\ max{\isacharunderscore}node\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}\ {\isasymand}\ x{\isadigit{1}}\ {\isasymle}\ max{\isacharunderscore}node\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ {\isasymforall}y\ {\isasymin}\ set\ x{\isadigit{2}}\ {\isachardot}\ max{\isacharunderscore}node\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}{\isacharless}\ x\ {\isasymlongrightarrow}\ max{\isacharunderscore}node\ y\ {\isacharless}\ x\ {\isasymand}\ x{\isadigit{1}}\ {\isacharless}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ le{\isacharunderscore}less{\isacharunderscore}trans\ \isacommand{by}\isamarkupfalse%
+\ blast\ \ \isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ {\isasymforall}y\ {\isasymin}\ set\ x{\isadigit{2}}\ {\isachardot}\ max{\isacharunderscore}node\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}{\isacharless}\ x\ {\isasymlongrightarrow}\ count{\isacharunderscore}node\ x\ y\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ Node{\isachardot}IH{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ max{\isacharunderscore}node\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}{\isacharless}\ x\ {\isasymlongrightarrow}\ count{\isacharunderscore}node\ x\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ \ ListSum\ {\isacharparenleft}map\ {\isacharparenleft}count{\isacharunderscore}node\ x{\isacharparenright}\ x{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}smt\ {\isacartoucheopen}max{\isacharunderscore}node\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ ListMax\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharhash}\ map\ max{\isacharunderscore}node\ x{\isadigit{2}}{\isacharparenright}{\isacartoucheclose}\ \isanewline
+add{\isachardot}commute\ add{\isacharunderscore}cancel{\isacharunderscore}left{\isacharunderscore}right\ count{\isacharunderscore}node{\isachardot}simps{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ less{\isacharunderscore}irrefl{\isacharunderscore}nat\ less{\isacharunderscore}le{\isacharunderscore}trans\ list{\isachardot}set{\isacharunderscore}intros{\isacharparenleft}{\isadigit{1}}{\isacharparenright}\ max{\isacharunderscore}of{\isacharunderscore}the{\isacharunderscore}list\ of{\isacharunderscore}bool{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\isanewline
+\ \ \ \ \ \ \isacommand{using}\isamarkupfalse%
+\ ListSum{\isacharunderscore}{\isadigit{0}}\ {\isacartoucheopen}{\isasymforall}x{\isachardot}\ {\isasymforall}y{\isasymin}set\ x{\isadigit{2}}{\isachardot}\ max{\isacharunderscore}node\ {\isacharparenleft}Node\ x{\isadigit{1}}\ x{\isadigit{2}}{\isacharparenright}\ {\isacharless}\ x\ {\isasymlongrightarrow}\ count{\isacharunderscore}node\ x\ y\ {\isacharequal}\ {\isadigit{0}}{\isacartoucheclose}\ \isacommand{by}\isamarkupfalse%
+\ auto\ \isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ increasing{\isacharunderscore}depth{\isacharunderscore}H\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ bool\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\ \isanewline
+\ \ {\isachardoublequoteopen}increasing{\isacharunderscore}depth{\isacharunderscore}H\ t\ l\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}x\ {\isasymin}\ H\ l{\isachardot}\ {\isasymforall}y\ {\isasymin}\ H\ l{\isachardot}\ x\ {\isacharless}\ y\ {\isasymlongrightarrow}\ depth\ t\ x\ {\isacharless}\ depth\ t\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ root{\isacharunderscore}label{\isadigit{0}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}root{\isacharunderscore}label{\isadigit{0}}\ Empty\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}root{\isacharunderscore}label{\isadigit{0}}\ {\isacharparenleft}Node\ {\isadigit{0}}\ {\isacharunderscore}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}root{\isacharunderscore}label{\isadigit{0}}\ {\isacharparenleft}Node\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharunderscore}{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+F |- w%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{fun}\isamarkupfalse%
+\ isFork\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ list\ {\isasymRightarrow}\ nattree\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}isFork\ w\ F\ {\isacharequal}\ {\isacharparenleft}{\isacharparenleft}length\ w\ {\isasymge}\ max{\isacharunderscore}node\ F{\isacharparenright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymand}\ {\isacharparenleft}increasing{\isacharunderscore}tree\ F{\isacharparenright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymand}\ {\isacharparenleft}uniqueH{\isacharunderscore}tree\ F\ w{\isacharparenright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymand}\ {\isacharparenleft}increasing{\isacharunderscore}depth{\isacharunderscore}H\ F\ w{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymand}\ root{\isacharunderscore}label{\isadigit{0}}\ F{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ isFork{\isacharunderscore}max{\isacharunderscore}not{\isacharunderscore}exceed\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}isFork\ w\ F\ {\isasymlongrightarrow}\ length\ w\ {\isasymge}\ max{\isacharunderscore}node\ F{\isachardoublequoteclose}%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ isFork{\isacharunderscore}root{\isacharunderscore}{\isadigit{0}}\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}isFork\ w\ F\ {\isasymlongrightarrow}\ root{\isacharunderscore}label{\isadigit{0}}\ F{\isachardoublequoteclose}%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ isFork{\isacharunderscore}increasing{\isacharunderscore}tree\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}isFork\ w\ F\ {\isasymlongrightarrow}\ increasing{\isacharunderscore}tree\ F{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ isFork{\isachardot}simps\ \isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\ \isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ isFork{\isacharunderscore}uniqueH{\isacharunderscore}tree\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}isFork\ w\ F\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}x\ {\isasymin}\ H\ w{\isachardot}\ unique{\isacharunderscore}node\ F\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}meson\ isFork{\isachardot}elims{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ uniqueH{\isacharunderscore}tree{\isacharunderscore}in{\isacharunderscore}imp{\isacharunderscore}l{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ isFork{\isacharunderscore}increasing{\isacharunderscore}depth{\isacharunderscore}H\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}isFork\ w\ F\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}\ x\ {\isasymin}\ H\ w{\isachardot}\ {\isasymforall}\ y\ {\isasymin}\ H\ w{\isachardot}\ x\ {\isacharless}\ y\ {\isasymlongrightarrow}\ depth\ F\ x\ {\isacharless}\ depth\ F\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}meson\ increasing{\isacharunderscore}depth{\isacharunderscore}H{\isachardot}elims{\isacharparenleft}{\isadigit{2}}{\isacharparenright}\ isFork{\isachardot}elims{\isacharparenleft}{\isadigit{2}}{\isacharparenright}{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\ \ \ \ \isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ flatTree\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}flatTree\ Empty\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}flatTree\ {\isacharparenleft}Node\ {\isacharunderscore}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}flatTree\ {\isacharparenleft}Node\ {\isadigit{0}}\ l{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ {\isasymle}\ \isanewline
+foldr\ {\isacharparenleft}{\isacharparenleft}{\isasymlambda}x{\isachardot}{\isacharparenleft}{\isasymlambda}y{\isachardot}{\isacharparenleft}if\ x\ {\isacharequal}\ {\isacharparenleft}height\ {\isacharparenleft}Node\ {\isadigit{0}}\ l{\isacharparenright}{\isacharparenright}\ then\ Suc\ y\ else\ y{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}map\ height{\isacharunderscore}branch\ l{\isacharparenright}\ {\isadigit{0}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}flatTree\ {\isacharparenleft}Node\ {\isacharparenleft}Suc\ n{\isacharparenright}\ l{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ isForkable\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}isForkable\ w\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}F{\isachardot}\ {\isacharparenleft}isFork\ w\ F{\isacharparenright}\ {\isasymand}\ flatTree\ F{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ order{\isacharunderscore}map\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}nat\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c\ list{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}b\ list\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}c\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}order{\isacharunderscore}map\ f\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharunderscore}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \ \ \isanewline
+{\isacharbar}\ {\isachardoublequoteopen}order{\isacharunderscore}map\ f\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ n\ {\isacharequal}\ f\ n\ x\ {\isacharat}\ {\isacharparenleft}order{\isacharunderscore}map\ f\ xs\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ order{\isacharunderscore}map{\isacharunderscore}disjoint\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}nat\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c\ list{\isacharparenright}\ {\isasymRightarrow}\ nat\ \ {\isasymRightarrow}\ {\isacharprime}b\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}c\ list{\isacharparenright}\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}order{\isacharunderscore}map{\isacharunderscore}disjoint\ f\ {\isacharunderscore}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \ \ \isanewline
+{\isacharbar}\ {\isachardoublequoteopen}order{\isacharunderscore}map{\isacharunderscore}disjoint\ f\ n\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ f\ n\ x\ {\isacharhash}\ {\isacharparenleft}order{\isacharunderscore}map{\isacharunderscore}disjoint\ f\ {\isacharparenleft}Suc\ n{\isacharparenright}\ xs{\isacharparenright}{\isachardoublequoteclose}\ \isanewline
+\isanewline
+\isacommand{function}\isamarkupfalse%
+\ firstN{\isacharunderscore}R\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}firstN{\isacharunderscore}R\ i\ n\ {\isacharequal}\ {\isacharparenleft}if\ i\ {\isasymge}\ \ n\ then\ {\isacharbrackleft}{\isacharbrackright}\ else\ i{\isacharhash}{\isacharparenleft}firstN{\isacharunderscore}R\ {\isacharparenleft}Suc\ i{\isacharparenright}\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\ \isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{termination}\isamarkupfalse%
+\ firstN{\isacharunderscore}R\ \isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}i{\isacharcomma}n{\isacharparenright}{\isachardot}\ n\ {\isacharminus}\ i{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\ \ \isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ firstN\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}firstN\ n\ {\isacharequal}\ firstN{\isacharunderscore}R\ {\isadigit{0}}\ n{\isachardoublequoteclose}\ \isanewline
+\ \ \ \ \isanewline
+\isacommand{function}\isamarkupfalse%
+\ tinelist{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nattree\ {\isasymRightarrow}\ {\isacharparenleft}nat\ list{\isacharparenright}\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}tinelist{\isacharunderscore}nat\ {\isacharunderscore}\ Empty\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackleft}{\isacharbrackright}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}tinelist{\isacharunderscore}nat\ m\ {\isacharparenleft}Node\ {\isacharunderscore}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackleft}m{\isacharbrackright}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}tinelist{\isacharunderscore}nat\ m\ {\isacharparenleft}Node\ {\isacharunderscore}\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ map\ {\isacharparenleft}Cons\ m{\isacharparenright}\ \isanewline
+{\isacharparenleft}foldr\ append\ {\isacharparenleft}map\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}n{\isacharcomma}t{\isacharparenright}{\isachardot}\ tinelist{\isacharunderscore}nat\ n\ t{\isacharparenright}\ {\isacharparenleft}zip\ {\isacharparenleft}firstN\ {\isacharparenleft}length\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}metis\ depth{\isacharunderscore}branch{\isachardot}cases\ neq{\isacharunderscore}Nil{\isacharunderscore}conv{\isacharparenright}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ total{\isacharunderscore}node\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}total{\isacharunderscore}node\ Empty\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}total{\isacharunderscore}node\ {\isacharparenleft}Node\ n\ l{\isacharparenright}\ {\isacharequal}\ Suc\ {\isacharparenleft}ListSum\ {\isacharparenleft}map\ total{\isacharunderscore}node\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ total{\isacharunderscore}nod{\isacharunderscore}dec\ {\isacharbrackleft}simp{\isacharbrackright}\ {\isacharcolon}\ {\isachardoublequoteopen}{\isasymforall}x\ {\isasymin}\ set\ l{\isachardot}\ total{\isacharunderscore}node\ x\ {\isacharless}\ total{\isacharunderscore}node\ {\isacharparenleft}Node\ n\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}induction\ l{\isacharparenright}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ Nil\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isacharparenleft}Cons\ a\ l{\isacharparenright}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isacharquery}case\ \isacommand{by}\isamarkupfalse%
+\ auto\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ set\ {\isacharparenleft}zip\ {\isacharparenleft}firstN\ {\isacharparenleft}Suc\ {\isacharparenleft}length\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ total{\isacharunderscore}node\ b\ {\isacharless}\ Suc\ {\isacharparenleft}total{\isacharunderscore}node\ x\ {\isacharplus}\ foldr\ op\ {\isacharplus}\ {\isacharparenleft}map\ total{\isacharunderscore}node\ xs{\isacharparenright}\ {\isadigit{0}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ total{\isacharunderscore}nod{\isacharunderscore}dec\ set{\isacharunderscore}zip{\isacharunderscore}rightD\ \isacommand{by}\isamarkupfalse%
+\ force%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{termination}\isamarkupfalse%
+\ tinelist{\isacharunderscore}nat\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}relation\ {\isachardoublequoteopen}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}n{\isacharcomma}nt{\isacharparenright}{\isachardot}\ total{\isacharunderscore}node\ nt{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ auto\isanewline
+\ \ \isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ tinelist\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ {\isacharparenleft}nat\ list{\isacharparenright}\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}tinelist\ Empty\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \isanewline
+{\isacharbar}\ {\isachardoublequoteopen}tinelist\ {\isacharparenleft}Node\ {\isadigit{0}}\ l{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}foldr\ append\ {\isacharparenleft}map\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}n{\isacharcomma}t{\isacharparenright}{\isachardot}\ tinelist{\isacharunderscore}nat\ n\ t{\isacharparenright}\ {\isacharparenleft}zip\ {\isacharparenleft}firstN\ {\isacharparenleft}length\ l{\isacharparenright}{\isacharparenright}\ l{\isacharparenright}{\isacharparenright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}tinelist\ {\isacharparenleft}Node\ {\isacharparenleft}Suc\ n{\isacharparenright}\ l{\isacharparenright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \isanewline
+\ \ \isanewline
+\isacommand{fun}\isamarkupfalse%
+\ getLabelFromTine\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ nat\ list{\isachardoublequoteclose}\ \isakeyword{where}\ \isanewline
+\ \ {\isachardoublequoteopen}getLabelFromTine\ Empty\ l\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}getLabelFromTine\ {\isacharunderscore}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}getLabelFromTine\ {\isacharparenleft}Node\ {\isacharunderscore}\ l{\isacharparenright}\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}case\ hd\ {\isacharparenleft}drop\ x\ l{\isacharparenright}\ of\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Empty\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ {\isacharparenleft}{\isacharasterisk}it\ runs\ out\ of\ nodes\ before\ we\ can\ trace\ down\ all\ paths{\isacharasterisk}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Node\ n\ {\isacharunderscore}\ {\isasymRightarrow}\ n\ {\isacharhash}\ getLabelFromTine\ {\isacharparenleft}hd\ {\isacharparenleft}drop\ x\ l{\isacharparenright}{\isacharparenright}\ xs{\isacharparenright}{\isachardoublequoteclose}\ \ \isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ isPrefix{\isacharunderscore}lists\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}isPrefix{\isacharunderscore}lists\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharunderscore}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}isPrefix{\isacharunderscore}lists\ {\isacharparenleft}l{\isacharhash}ls{\isacharparenright}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}isPrefix{\isacharunderscore}lists\ {\isacharparenleft}l{\isacharhash}ls{\isacharparenright}\ {\isacharparenleft}r{\isacharhash}rs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenleft}l{\isacharequal}r{\isacharparenright}\ {\isasymand}\ isPrefix{\isacharunderscore}lists\ ls\ rs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ isPrefix{\isacharunderscore}tines\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nattree\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ {\isachardoublequoteopen}isPrefix{\isacharunderscore}tines\ nt{\isadigit{1}}\ nt{\isadigit{2}}\ t{\isadigit{1}}\ t{\isadigit{2}}\ {\isacharequal}\ \isanewline
+{\isacharparenleft}isPrefix{\isacharunderscore}lists\ t{\isadigit{1}}\ t{\isadigit{2}}\ {\isasymand}\ isPrefix{\isacharunderscore}lists\ {\isacharparenleft}getLabelFromTine\ nt{\isadigit{1}}\ t{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}getLabelFromTine\ nt{\isadigit{2}}\ t{\isadigit{2}}{\isacharparenright}{\isacharparenright}\ \ {\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ isPrefix{\isacharunderscore}trees\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nattree\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}isPrefix{\isacharunderscore}trees\ nt{\isadigit{1}}\ nt{\isadigit{2}}\ {\isacharequal}\ \isanewline
+\ \ \ \ {\isacharparenleft}{\isasymforall}t{\isadigit{1}}{\isachardot}\ {\isacharparenleft}{\isasymforall}t{\isadigit{2}}{\isachardot}\ ListMem\ t{\isadigit{1}}\ {\isacharparenleft}tinelist\ nt{\isadigit{1}}{\isacharparenright}\ {\isasymand}\ ListMem\ t{\isadigit{2}}\ {\isacharparenleft}tinelist\ nt{\isadigit{2}}{\isacharparenright}\ {\isasymlongrightarrow}\ isPrefix{\isacharunderscore}tines\ nt{\isadigit{1}}\ nt{\isadigit{2}}\ t{\isadigit{1}}\ t{\isadigit{2}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ isPrefix{\isacharunderscore}forks\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ list\ {\isasymRightarrow}\ bool\ list\ {\isasymRightarrow}\ nattree\ {\isasymRightarrow}\ nattree\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}isPrefix{\isacharunderscore}forks\ w{\isadigit{1}}\ w{\isadigit{2}}\ nt{\isadigit{1}}\ nt{\isadigit{2}}\ {\isacharequal}\ \isanewline
+\ \ \ \ {\isacharparenleft}isFork\ w{\isadigit{1}}\ nt{\isadigit{1}}\ {\isasymand}\ isFork\ w{\isadigit{2}}\ nt{\isadigit{2}}\ {\isasymand}\ isPrefix{\isacharunderscore}lists\ w{\isadigit{1}}\ w{\isadigit{2}}\ {\isasymand}\ isPrefix{\isacharunderscore}trees\ nt{\isadigit{1}}\ nt{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isacommand{inductive}\isamarkupfalse%
+\ ListOfEmpty\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ Nil\ {\isacharcolon}\ {\isachardoublequoteopen}ListOfEmpty\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ Cons\ {\isacharcolon}\ {\isachardoublequoteopen}ListOfEmpty\ l\ {\isasymLongrightarrow}\ ListOfEmpty\ {\isacharparenleft}Empty{\isacharhash}l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ closedFork{\isacharunderscore}Hgiven\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat\ set\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}closedFork{\isacharunderscore}Hgiven\ Empty\ {\isacharunderscore}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}closedFork{\isacharunderscore}Hgiven\ {\isacharparenleft}Node\ n\ l{\isacharparenright}\ h\ {\isacharequal}\ {\isacharparenleft}if\ ListOfEmpty\ l\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ then\ {\isacharparenleft}n\ {\isasymin}\ h{\isacharparenright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ foldr\ conj\ {\isacharparenleft}map\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ closedFork{\isacharunderscore}Hgiven\ x\ h{\isacharparenright}\ l{\isacharparenright}\ True{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ closedFork\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ bool\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}closedFork\ t\ w\ {\isacharequal}\ closedFork{\isacharunderscore}Hgiven\ t\ {\isacharparenleft}H\ w{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\ \ \isanewline
+\isanewline
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ gap\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}gap\ nt\ tine\ {\isacharequal}\ height\ nt\ {\isacharminus}\ {\isacharparenleft}length\ tine{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ reserve\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ list\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}reserve\ w\ labeledTine\ {\isacharequal}\ foldr\ {\isacharparenleft}{\isasymlambda}x{\isachardot}{\isacharparenleft}plus\ {\isacharparenleft}of{\isacharunderscore}bool\ x{\isacharparenright}{\isacharparenright}{\isacharparenright}\ \ {\isacharparenleft}drop\ {\isacharparenleft}ListMax\ labeledTine{\isacharparenright}\ w{\isacharparenright}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ reach\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ bool\ list\ {\isasymRightarrow}\ nat\ list\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}reach\ nt\ w\ tine\ {\isacharequal}\ reserve\ w\ tine\ {\isacharminus}\ gap\ nt\ tine{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isanewline
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ lambda\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ bool\ list\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}lambda\ t\ w\ {\isacharequal}\ ListMax\ {\isacharparenleft}map\ {\isacharparenleft}reach\ t\ w{\isacharparenright}\ {\isacharparenleft}tinelist\ t{\isacharparenright}{\isacharparenright}\ {\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ crosslist\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharparenright}\ prod{\isacharparenright}\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}crosslist\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharunderscore}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}crosslist\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ ys\ {\isacharequal}\ {\isacharparenleft}map\ {\isacharparenleft}Pair\ x{\isacharparenright}\ ys{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}crosslist\ xs\ ys{\isacharparenright}\ {\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ cross{\isacharunderscore}all{\isacharunderscore}pair{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ list{\isacharparenright}\ list\ {\isasymRightarrow}\ \ {\isacharparenleft}{\isacharprime}a\ list{\isacharcomma}{\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharparenright}\ prod{\isacharparenright}\ list{\isacharparenright}\ prod{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}cross{\isacharunderscore}all{\isacharunderscore}pair{\isacharprime}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}{\isacharcomma}{\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}cross{\isacharunderscore}all{\isacharunderscore}pair{\isacharprime}\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharat}\ fst\ {\isacharparenleft}cross{\isacharunderscore}all{\isacharunderscore}pair{\isacharprime}\ xs{\isacharparenright}{\isacharcomma}\ \isanewline
+{\isacharparenleft}crosslist\ x\ {\isacharparenleft}fst\ {\isacharparenleft}cross{\isacharunderscore}all{\isacharunderscore}pair{\isacharprime}\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharat}\ snd\ {\isacharparenleft}cross{\isacharunderscore}all{\isacharunderscore}pair{\isacharprime}\ xs{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ cross{\isacharunderscore}all{\isacharunderscore}pair\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ list{\isacharparenright}\ list\ {\isasymRightarrow}\ \ {\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a{\isacharparenright}\ prod{\isacharparenright}\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}cross{\isacharunderscore}all{\isacharunderscore}pair\ l\ {\isacharequal}\ snd\ {\isacharparenleft}cross{\isacharunderscore}all{\isacharunderscore}pair{\isacharprime}\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ list{\isacharunderscore}of{\isacharunderscore}disjoint{\isacharunderscore}edged{\isacharunderscore}tines\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharparenleft}nat\ list{\isacharcomma}\ nat\ list{\isacharparenright}\ prod{\isacharparenright}\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}list{\isacharunderscore}of{\isacharunderscore}disjoint{\isacharunderscore}edged{\isacharunderscore}tines\ Empty\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}list{\isacharunderscore}of{\isacharunderscore}disjoint{\isacharunderscore}edged{\isacharunderscore}tines\ {\isacharparenleft}Node\ n\ l{\isacharparenright}\ \isanewline
+\ \ \ {\isacharequal}\ cross{\isacharunderscore}all{\isacharunderscore}pair\ {\isacharparenleft}order{\isacharunderscore}map{\isacharunderscore}disjoint\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ map\ {\isacharparenleft}Cons\ x{\isacharparenright}{\isacharparenright}\ \ {\isadigit{0}}\ {\isacharparenleft}map\ tinelist\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ margin\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nattree\ {\isasymRightarrow}\ \ bool\ list\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}margin\ t\ w\ {\isacharequal}\ foldr\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}a{\isacharcomma}b{\isacharparenright}{\isachardot}max\ {\isacharparenleft}min\ {\isacharparenleft}reach\ t\ w\ a{\isacharparenright}\ {\isacharparenleft}reach\ t\ w\ b{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}list{\isacharunderscore}of{\isacharunderscore}disjoint{\isacharunderscore}edged{\isacharunderscore}tines\ t{\isacharparenright}\ {\isacharparenleft}{\isadigit{0}}\ {\isacharminus}\ {\isacharparenleft}height\ t{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{proposition}\isamarkupfalse%
+\ proposition{\isacharunderscore}{\isadigit{4}}{\isacharunderscore}{\isadigit{1}}{\isadigit{7}}\ {\isacharcolon}\ {\isachardoublequoteopen}isForkable\ w\ {\isasymlongleftrightarrow}\ {\isacharparenleft}{\isasymexists}\ F{\isachardot}{\isacharparenleft}isFork\ w\ F\ {\isasymand}\ margin\ F\ w\ {\isasymge}\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\ \isanewline
+%
+\isadelimproof
+\ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ lambda{\isacharunderscore}of{\isacharunderscore}string\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ list\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\ \ \ \isanewline
+\ \ {\isachardoublequoteopen}lambda{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharequal}\ {\isacharparenleft}GREATEST\ t{\isachardot}\ {\isacharparenleft}{\isasymexists}F{\isachardot}{\isacharparenleft}isFork\ w\ F\ {\isasymand}\ closedFork\ F\ w\ {\isasymand}\ t\ {\isacharequal}\ lambda\ F\ w{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ margin{\isacharunderscore}of{\isacharunderscore}string\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ list\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}margin{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharequal}\ {\isacharparenleft}GREATEST\ t{\isachardot}\ {\isacharparenleft}{\isasymexists}F{\isachardot}{\isacharparenleft}isFork\ w\ F\ {\isasymand}\ closedFork\ F\ w\ {\isasymand}\ t\ {\isacharequal}\ margin\ F\ w{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ m\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ list\ {\isasymRightarrow}\ {\isacharparenleft}nat{\isacharcomma}\ nat{\isacharparenright}\ prod{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}m\ w\ {\isacharequal}\ {\isacharparenleft}lambda{\isacharunderscore}of{\isacharunderscore}string\ w{\isacharcomma}\ margin{\isacharunderscore}of{\isacharunderscore}string\ w{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lemma{\isacharunderscore}{\isadigit{4}}{\isacharunderscore}{\isadigit{1}}{\isadigit{8}}\ {\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}m\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isacharcomma}{\isadigit{0}}{\isacharparenright}{\isacharparenright}\ {\isasymand}\ \isanewline
+\ \ {\isacharparenleft}{\isasymforall}\ w{\isachardot}\ {\isacharparenleft}{\isacharparenleft}length\ w\ {\isachargreater}\ {\isadigit{0}}{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}\ \isanewline
+\ \ \ \ {\isacharparenleft}m\ {\isacharparenleft}w\ {\isacharat}\ {\isacharbrackleft}True{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}lambda{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharplus}\ {\isadigit{1}}{\isacharcomma}\ margin{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isacharparenright}\ \isanewline
+\ \ \ \ \ {\isasymand}\ \ \ {\isacharparenleft}{\isacharparenleft}lambda{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isachargreater}\ margin{\isacharunderscore}of{\isacharunderscore}string\ w{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}margin{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharequal}\ {\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ {\isasymlongrightarrow}\ {\isacharparenleft}m\ {\isacharparenleft}w\ {\isacharat}\ {\isacharbrackleft}False{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}lambda{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharminus}\ {\isadigit{1}}{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ \ {\isasymand}\ \ \ {\isacharparenleft}lambda{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharequal}\ {\isadigit{0}}\ {\isasymlongrightarrow}\ {\isacharparenleft}m\ {\isacharparenleft}w\ {\isacharat}\ {\isacharbrackleft}False{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isacharcomma}\ margin{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ \ {\isasymand}\ \ \ {\isacharparenleft}lambda{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isachargreater}\ {\isadigit{0}}\ {\isasymand}\ margin{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymlongrightarrow}\ {\isacharparenleft}m\ {\isacharparenleft}w\ {\isacharat}\ {\isacharbrackleft}False{\isacharbrackright}{\isacharparenright}\ \isanewline
+\ \ \ \ \ \ \ \ \ \ {\isacharequal}\ {\isacharparenleft}lambda{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharminus}\ {\isadigit{1}}{\isacharcomma}\ margin{\isacharunderscore}of{\isacharunderscore}string\ w\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ \isanewline
+{\isasymand}\ {\isacharparenleft}{\isasymexists}\ F{\isachardot}\ {\isacharparenleft}isFork\ w\ F\ {\isasymand}\ closedFork\ F\ w\ \ {\isasymand}\ {\isacharparenleft}m\ w\ {\isacharequal}\ {\isacharparenleft}lambda\ F\ w{\isacharcomma}\ margin\ F\ w{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimtheory
+\ \ \ \ \isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
