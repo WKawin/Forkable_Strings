@@ -14,10 +14,12 @@ This work includes ongoing and messy work on the proofs of Proposition 4.17 and 
 A string w is forkable if and only if there is a closed fork F |- w for which margin(F) ≥ 0.
 
 For the case of characteristic strings not having 0 is the trivial case and in a process of proving other than that I now separate the proof in two parts following the original proof in the paper. (<--- I am here and soon to move to the next step.)
+
 (->) If a string w is forkable then there is a closed fork F |- w for which margin(F) ≥ 0.
  - build Function "toClosedFork" to have the unique prefix fork 
  - prove that the output has at least two tines having reach greater than or equal to 0
  - point out that these two tines are prefixes of those of two logest ones in the original fork
+
 (<-) If there is a closed fork F |- w for which margin(F) ≥ 0 then a string w is forkable.
  - reverse mechanism to above
  - build "toFlatFork" by adding those two tines which have reach greater than or equal to 0 by enough nodes to get a flate fork 
