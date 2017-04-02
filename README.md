@@ -7,7 +7,7 @@ This repo contains a short and incomplete Isabelle proof script for the section 
 
 - For document, it's "~/output/document.pdf"
 
-##Current status
+## Current status
 This work includes ongoing and messy work on the proofs of Proposition 4.17 and Lemma 4.18, and these are steps I try to follow
 
 ### 4.17 
@@ -25,10 +25,10 @@ For the case of characteristic strings not having 0 is the trivial case and in a
   - basis step: prove for m [] = (0,0)
   - inductive : by cases; however each case is exhaustive in the paper (still planing to reduce the excessive amount of work)
 
-##Future goal
+## Future goals
 Theorem 4.12: might follow this proof: https://eprint.iacr.org/2017/241 instead of the original one from the Ouroboros paper.
 
-##Comments
+## Comments
 - Working on GREATEST is quite tedious I am considering using Max instead as all sets considered should be finite.
 - As the latest version updated section 4.2, there might be some other interesting proofs to be done after 4.17, 4.18 and 4.12
 
