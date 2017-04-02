@@ -25,10 +25,7 @@ For the case of characteristic strings not having 0 is the trivial case and in a
 ### Lemma 4.18:
 m(nil) = (0, 0) and, for all nonempty strings w ∈ {0, 1}*,
 m(w1) = (λ(w) + 1, µ(w) + 1), and
-           (λ(w) − 1, 0) if λ(w) > µ(w) = 0,
-m(w0) =    (0, µ(w) − 1) if λ(w) = 0,
-           (0, µ(w) − 1) if λ(w) = 0,
-           (λ(w) − 1, µ(w) − 1) otherwise.
+m(w0) = (λ(w) − 1, 0) if λ(w) > µ(w) = 0, (0, µ(w) − 1) if λ(w) = 0, (0, µ(w) − 1) if λ(w) = 0, (λ(w) − 1, µ(w) − 1) otherwise.
 Furthermore, for every string w, there is a closed fork Fw |- w for which m(w) = (λ(Fw), µ(Fw)).
 
 Proof by induction 
