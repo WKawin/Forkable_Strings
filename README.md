@@ -13,11 +13,11 @@ This work includes ongoing and messy work on the proofs of Proposition 4.17 and 
 ### Proposition 4.17:
 A string w is forkable if and only if there is a closed fork F |- w for which margin(F) ≥ 0.
 
-For the case of characteristic strings not having 0 is the trivial case and in a process of proving other than that I now separate the proof in two parts following the original proof in the paper. (<--- I am here and soon to move to the next step.)
+For the case of characteristic strings not having 0 is the trivial case [DONE] and in a process of proving other than that I now separate the proof in two parts following the original proof in the paper. 
 
 (->) If a string w is forkable then there is a closed fork F |- w for which margin(F) ≥ 0.
- - build Function "toClosedFork" to have the unique prefix fork 
- - prove that the output has at least two tines having reach greater than or equal to 0
+ - build Function "toClosedFork" to have the unique prefix fork [BUILT]
+ - prove that the output has at least two tines having reach greater than or equal to 0 [now I am proving this]
  - point out that these two tines are prefixes of those of two logest ones in the original fork
 
 (<-) If there is a closed fork F |- w for which margin(F) ≥ 0 then a string w is forkable.
@@ -25,10 +25,10 @@ For the case of characteristic strings not having 0 is the trivial case and in a
  - build "toFlatFork" by adding those two tines which have reach greater than or equal to 0 by enough nodes to get a flate fork 
 
 ### Lemma 4.18:
-m(nil) = (0, 0) and, for all nonempty strings w ∈ {0, 1}*,
+m(nil) = (0, 0) [DONE] and, for all nonempty strings w ∈ {0, 1}*,
 m(w1) = (λ(w) + 1, µ(w) + 1), and
 m(w0) = (λ(w) − 1, 0) if λ(w) > µ(w) = 0, (0, µ(w) − 1) if λ(w) = 0, (0, µ(w) − 1) if λ(w) = 0, (λ(w) − 1, µ(w) − 1) otherwise.
-Furthermore, for every string w, there is a closed fork Fw |- w for which m(w) = (λ(Fw), µ(Fw)).
+Furthermore, for every string w, there is a closed fork Fw |- w for which m(w) = (λ(Fw), µ(Fw)). [DONE for the nil case]
 
 Proof by induction 
  - basis step: prove for m [] = (0,0)
