@@ -155,6 +155,11 @@ fun height :: "nattree \<Rightarrow> nat" where
   "height Empty = 0"  
 | "height (Node n bl) = (if Leaf (Node n bl) then 0 else Suc (ListMax (map height bl)))"
 
+(*used in the proof of termination only*)
+fun size_from_height :: "nattree \<Rightarrow> nat" where
+  "size_from_height Empty = 0"
+| "size_from_height (Node n l) = Suc (ListMax (map size_from_height l))"  
+  
 lemma height_Leaf [simp]: "Leaf n \<longrightarrow> height n = 0"
   by (metis height.elims)
 
@@ -266,6 +271,11 @@ proof (induction l)
 definition SucOption :: "nat option \<Rightarrow> nat option" where
   "SucOption n = (case n of None \<Rightarrow> None | Some n \<Rightarrow> Some (Suc n))"
 
+lemma SucOption_ne_Some_0 [simp]: "SucOption x \<noteq> Some 0"
+  apply (cases x)
+   apply (simp_all add: SucOption_def)
+   done
+  
 lemma SucOption_none [simp]: "SucOption x = None \<longrightarrow> x = None"
   by (simp add: SucOption_def option.case_eq_if)  
   
@@ -308,6 +318,54 @@ lemma ListSum_0 [simp] :"(\<forall>x \<in> set l. x = 0) \<longleftrightarrow> L
       by simp 
   qed
     
+lemma ListSum_ge [simp] : "\<forall>x \<in> set l. ListSum l \<ge> x"
+  proof (induction l)
+    case Nil
+    then show ?case by simp
+  next
+    case (Cons x xs)
+      hence "ListSum (x#xs) = x + ListSum xs"
+        by simp
+      hence "ListSum (x#xs) \<ge> x" by simp
+    then show ?case using Cons.IH by auto
+  qed
+    
+lemma ListSum_ge_lifting_2 [simp] : "(x \<in> set l \<and> y \<in> set l \<and> x \<noteq> y \<longrightarrow> ListSum (map f l) \<ge> (f x) + (f y))"
+proof (induction l)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a l)
+  then show ?case 
+    proof (cases l)
+      case Nil
+      then show ?thesis
+        by auto 
+    next
+      case (Cons ht tl)
+      hence "a = x \<longrightarrow> (x \<in> set (a#ht#tl) \<and> y \<in> set (a#ht#tl) \<and> x \<noteq> y \<longrightarrow> y \<noteq> a)"
+        by auto
+      hence "a = x \<longrightarrow> (x \<in> set (a#ht#tl) \<and> y \<in> set (a#ht#tl) \<and> x \<noteq> y \<longrightarrow> y \<in> set (ht#tl))"
+        by auto
+      hence "a = x \<longrightarrow> (x \<in> set (a#ht#tl) \<and> y \<in> set (a#ht#tl) \<and> x \<noteq> y \<longrightarrow> ListSum (map f (ht#tl)) \<ge> (f y)) "
+        by (metis ListSum_ge image_eqI set_map)
+      hence ax:"a = x \<longrightarrow> (x \<in> set (a#ht#tl) \<and> y \<in> set (a#ht#tl) \<and> x \<noteq> y \<longrightarrow> ListSum (map f (a#ht#tl)) \<ge> f x + (f y)) "
+        by auto
+      have "a = y \<longrightarrow> (x \<in> set (a#ht#tl) \<and> y \<in> set (a#ht#tl) \<and> x \<noteq> y \<longrightarrow> x \<noteq> a)"
+        by auto
+      hence "a = y \<longrightarrow> (x \<in> set (a#ht#tl) \<and> y \<in> set (a#ht#tl) \<and> x \<noteq> y \<longrightarrow> x \<in> set (ht#tl))"
+        by auto
+      hence "a = y \<longrightarrow> (x \<in> set (a#ht#tl) \<and> y \<in> set (a#ht#tl) \<and> x \<noteq> y \<longrightarrow> ListSum (map f (ht#tl)) \<ge> (f x)) "
+        by (metis ListSum_ge image_eqI set_map)
+      hence ay:"a = y \<longrightarrow> (x \<in> set (a#ht#tl) \<and> y \<in> set (a#ht#tl) \<and> x \<noteq> y \<longrightarrow> ListSum (map f (a#ht#tl)) \<ge> f y + (f x)) "
+        by auto    
+      have "a \<noteq> y \<and> a \<noteq> x \<longrightarrow> (x \<in> set (a#ht#tl) \<and> y \<in> set (a#ht#tl) \<and> x \<noteq> y \<longrightarrow> ListSum (map f (ht#tl)) \<ge> f y + (f x))"
+        using Cons.IH local.Cons by auto
+      then show ?thesis using ax ay
+        by (smt ListSum.simps add.commute foldr.simps(2) le_add2 list.simps(9) local.Cons o_apply order.trans)
+    qed
+qed
+    
 text "No prunning used as we don't yet have an increasing tree in argument, but can improve it later"
 fun count_node :: "nat \<Rightarrow> nattree \<Rightarrow> nat" where
   "count_node _ Empty = 0"
@@ -339,6 +397,20 @@ lemma uniqueH_tree_in_imp_l [simp]: "\<forall> x \<in> H l. uniqueH_tree t l \<l
 lemma uniqueH_tree_in_imp_r [simp]: "(\<forall> x \<in> H l. unique_node t x) \<longrightarrow> uniqueH_tree t l"
   using uniqueH_tree_def unique_nodes_by_nat_set.simps by blast
     
+lemma unique_node_branches [simp]: assumes "unique_node (Node n l) m" and "\<exists> x \<in> set l. count_node m x = 1" 
+  shows "x \<in> set l \<and> y \<in> set l \<and> count_node m x = 1 \<and> count_node m y = 1 \<longrightarrow> x = y"  
+proof (rule ccontr)
+  assume 1:"\<not> (x \<in> set l \<and> y \<in> set l \<and> count_node m x = 1 \<and> count_node m y = 1 \<longrightarrow> x = y)"
+  hence "x \<in> set l \<and> y \<in> set l \<and> count_node m x = 1 \<and> count_node m y = 1 \<and> x \<noteq> y"
+    by auto  
+  hence "count_node m (Node n l) = (of_bool (m = n)) + ListSum (map (count_node m) l)"
+    by simp
+  hence "count_node m (Node n l) \<ge> 2"
+    by (metis ListSum_ge_lifting_2 \<open>x \<in> set l \<and> y \<in> set l \<and> count_node m x = 1 \<and> count_node m y = 1 \<and> x \<noteq> y\<close> nat_1_add_1 trans_le_add2)
+  thus "False"
+    using assms(1) unique_node_def by auto
+qed
+
 fun max_node :: "nattree \<Rightarrow> nat" where
   "max_node Empty = 0"
 | "max_node (Node n bl) = ListMax (n # (map max_node bl))"
@@ -366,14 +438,14 @@ lemma max_node_max [simp]: "\<forall> m. max_node t < m  \<longrightarrow> count
   qed
   
 fun increasing_depth_H :: "nattree \<Rightarrow> bool list \<Rightarrow> bool" where 
-  "increasing_depth_H t l = (\<forall>x \<in> H l. \<forall>y \<in> H l. x < y \<longrightarrow>  lt_option (depth t x)  (depth t y))"
-
+  "increasing_depth_H t l = (\<forall>x \<in> H l. \<forall>y \<in> H l. x < y \<longrightarrow>  lt_option (depth t x)  (depth t y))"  
+  
 inductive root_label_0 :: "nattree \<Rightarrow> bool" where
   "root_label_0 (Node 0 l)"
   
 lemma root_label_0_depth_0 [simp] : "root_label_0 n \<longrightarrow> depth n 0 = Some 0"
   by (metis depth.simps(2) root_label_0.cases)
-  
+    
 text "F |- w" 
 fun isFork :: "bool list \<Rightarrow> nattree \<Rightarrow> bool" where
   "isFork w F = ((length w \<ge> max_node F) 
@@ -394,20 +466,32 @@ lemma isFork_uniqueH_tree [simp] : "isFork w F \<longrightarrow> (\<forall>x \<i
 
 lemma isFork_increasing_depth_H [simp] : 
 "isFork w F \<longrightarrow> (\<forall> x \<in> H w. \<forall> y \<in> H w. x < y \<longrightarrow> lt_option (depth F x) (depth F y))"
-  by (meson increasing_depth_H.elims(2) isFork.elims(2))  
-  
-fun getLabelFromTine :: "nattree \<Rightarrow> nat list \<Rightarrow> nat list" where 
+  by (meson increasing_depth_H.elims(2) isFork.elims(2))   
+    
+function getLabelFromTine :: "nattree \<Rightarrow> nat list \<Rightarrow> nat list" where 
   "getLabelFromTine Empty l = []"
 | "getLabelFromTine _ [] = []"
 | "getLabelFromTine (Node _ l) (x#xs) = (if x \<ge> length l then [] else 
                                            (case nth l x of 
                                             Empty \<Rightarrow> [] | (*it runs out of nodes before we can trace down all paths*)
-                                            Node n _ \<Rightarrow> n # getLabelFromTine (nth l x) xs))"  
+                                            Node n _ \<Rightarrow> n # getLabelFromTine (nth l x) xs))"
+  apply (metis list.exhaust max_node.cases old.prod.exhaust)
+  apply simp
+  apply blast
+  apply simp
+  apply blast
+  apply blast
+  by auto 
 
+termination getLabelFromTine
+apply (relation "measure (\<lambda>(i,N). length N)")
+apply simp
+by (metis case_prod_conv impossible_Cons in_measure not_less)    
+  
+definition set_of_tines :: "nattree \<Rightarrow> (nat list) set" where
+  "set_of_tines t  = {tine. length tine = length (getLabelFromTine t tine)}"    
 text "This function provides a set of all path possible, starting from a root by comparing between
 the length of lists of all choices of edges and lists of their labels."
-fun set_of_tines :: "nattree \<Rightarrow> (nat list) set" where
-  "set_of_tines t  = {tine. length tine = length (getLabelFromTine t tine)}"  
   
 lemma getLabelFromTine_Leaf_nil : assumes "Leaf F" shows "getLabelFromTine F t = []"
 proof -
@@ -438,7 +522,7 @@ lemma getLabelFromTine_shorter_eq_height [simp]: "length (getLabelFromTine F t) 
 proof (induction t arbitrary:F)
      case Nil
      then show ?case
-       by (metis getLabelFromTine.elims getLabelFromTine.simps(2) less_eq_nat.simps(1) list.size(3))
+       by (metis getLabelFromTine.simps(2) less_eq_nat.simps(1) list.size(3))
    next
      case (Cons x xs)
      then show ?case 
@@ -467,7 +551,8 @@ case l ! x of Empty \<Rightarrow> [] | Node m xa \<Rightarrow> m # getLabelFromT
                  next
                    case (Node m bl)
                      hence "getLabelFromTine (Node n l) (x#xs) = m # getLabelFromTine (nth l x) xs"
-                       by (simp add: False)
+                       using False
+                       by (simp add: Node)  
                      hence "length (getLabelFromTine (Node n l) (x#xs)) = Suc (length (getLabelFromTine (nth l x) xs))"
                        by simp
                      hence "length (getLabelFromTine (nth l x) xs) \<le> height (nth l x)"
@@ -483,36 +568,53 @@ case l ! x of Empty \<Rightarrow> [] | Node m xa \<Rightarrow> m # getLabelFromT
        qed
  qed
         
-
-      
 lemma getLabelFromTine_shorter_eq_tine [simp]: "length (getLabelFromTine F t) \<le> length t"
   sorry
     
 lemma set_of_tines_Empty [simp]: "set_of_tines Empty = {[]}"
-  by simp
+proof -
+  have "set_of_tines Empty  = {tine. length tine = length (getLabelFromTine Empty tine)}"
+    by (simp add: set_of_tines_def)
+  thus ?thesis by auto
+qed
    
 lemma getLabelFromTine_branch_notin [simp]: "x \<ge> length l \<longrightarrow> x#xs \<notin> set_of_tines (Node n l)"
-  by simp
+proof -
+  have 1: "x \<ge> length l \<longrightarrow> getLabelFromTine (Node n l) (x#xs)= []"
+    by simp
+  hence "length (x#xs) \<noteq> length []"
+    by simp
+  hence 2:"x \<ge> length l \<longrightarrow> length (x#xs) \<noteq> length (getLabelFromTine (Node n l) (x#xs))" using 1 by simp
+  have "\<forall> tine \<in> set_of_tines (Node n l). length tine = length (getLabelFromTine (Node n l) tine)"
+    by (simp add: set_of_tines_def)
+  thus ?thesis
+    by auto 
+qed
   
-lemma getLabelFromTine_branch_in_if [simp]: assumes "x < length l \<and> xs \<in> set_of_tines (nth l x) \<and> (nth l x \<noteq> Empty)" shows "x#xs \<in> set_of_tines (Node n l)"
+lemma getLabelFromTine_branch_in_if [simp]: 
+  assumes "x < length l \<and> xs \<in> set_of_tines (nth l x) \<and> (nth l x \<noteq> Empty)" shows "x#xs \<in> set_of_tines (Node n l)"
 proof (cases "nth l x")
   case Empty
   then show ?thesis
-    using assms by auto
+    using assms
+    by blast 
 next
   case (Node m bl)
   have "getLabelFromTine (Node n l) (x#xs) = m # getLabelFromTine (nth l x) xs"
-    using Node assms by auto
+    using Node assms
+    by (metis getLabelFromTine.simps(3) leD nattree.simps(5)) 
   hence "length (getLabelFromTine (nth l x) xs) = length xs"
-    using assms by auto
-  then show ?thesis
-    using \<open>getLabelFromTine (Node n l) (x # xs) = m # getLabelFromTine (l ! x) xs\<close> by auto 
+    using assms
+      by (simp add: \<open>x < length l \<and> xs \<in> set_of_tines (l ! x) \<and> l ! x \<noteq> Empty\<close> set_of_tines_def) 
+    then show ?thesis
+      using \<open>getLabelFromTine (Node n l) (x # xs) = m # getLabelFromTine (l ! x) xs\<close> set_of_tines_def by auto  
 qed
 
 lemma getLabelFromTine_branch_in_onlyif [simp]: assumes "x#xs \<in> set_of_tines (Node n l)" shows "x < length l \<and> xs \<in> set_of_tines (nth l x) \<and> (nth l x \<noteq> Empty)"  
 proof -
   have "length (x#xs) = length (getLabelFromTine (Node n l) (x#xs))"
-    using assms by auto
+    using assms
+    by (simp add: set_of_tines_def) 
   have len:"x < length l"
   proof -
     have "\<not> length l \<le> x"
@@ -526,17 +628,17 @@ getLabelFromTine.simps(3) getLabelFromTine_branch_notin length_0_conv list.simps
   then obtain m bl where "nth l x = Node m bl" using len
     using max_node.cases by blast
   hence "getLabelFromTine (Node n l) (x#xs) = m # getLabelFromTine (nth l x) xs" using len empty
-    by simp
+    by (metis getLabelFromTine.simps(3) leD nattree.simps(5))
   thus ?thesis
-    using \<open>length (x # xs) = length (getLabelFromTine (Node n l) (x # xs))\<close> len by auto
+    using \<open>length (x # xs) = length (getLabelFromTine (Node n l) (x # xs))\<close> len
+    by (simp add: empty set_of_tines_def)
 qed
 
 lemma getLabelFromTine_branch_in [simp]: "x#xs \<in> set_of_tines (Node n l) \<longleftrightarrow> x < length l \<and> xs \<in> set_of_tines (nth l x) \<and> (nth l x \<noteq> Empty)"
   using getLabelFromTine_branch_in_if getLabelFromTine_branch_in_onlyif by blast
   
-lemma nil_in_set_of_tines [simp]: "[] \<in> set_of_tines F"  
-  by (metis (mono_tags) getLabelFromTine.simps(1) getLabelFromTine.simps(2) length_0_conv list.size(3) 
-mem_Collect_eq nattree.exhaust set_of_tines.simps) 
+lemma nil_in_set_of_tines [simp]: "[] \<in> set_of_tines F"
+  by (simp add: set_of_tines_def)  
 
 lemma nth_in_fst [simp] : assumes "n < length x" shows "nth x n = nth (x@y) n"
   by (simp add: assms nth_append)
@@ -566,18 +668,24 @@ next
             by (simp add: local.Cons) 
         next
           case False
-            hence  lt2:"y < length xs"
-              using \<open>y < length (xs @ [Empty])\<close> by auto
+          hence  lt2:"y < length xs"
+            by (metis length_append_singleton linorder_neqE_nat lt1 not_less_eq)
             hence nth_eq:"nth xs y = nth (xs@[Empty]) y"
-              by simp
-            hence L:"getLabelFromTine (Node n (xs@[Empty])) (y#ys) =  
-                                            (case nth (xs@[Empty]) y of 
+              using nth_in_fst by blast
+            hence L: "getLabelFromTine (Node n (xs@[Empty])) (y#ys) = (if y \<ge> length (xs@[Empty]) then [] else 
+                                           (case nth (xs@[Empty]) y of 
+                                            Empty \<Rightarrow> [] |
+                                            Node m _ \<Rightarrow> m # getLabelFromTine (nth (xs@[Empty]) y) ys))"
+              using getLabelFromTine.simps(3) by blast   
+            hence  L: "getLabelFromTine (Node n (xs@[Empty])) (y#ys) =  (case nth (xs@[Empty]) y of 
                                             Empty \<Rightarrow> [] | 
-                                            Node m _ \<Rightarrow> m # getLabelFromTine (nth (xs@[Empty]) y) ys)" using lt1 by simp
+                                            Node m _ \<Rightarrow> m # getLabelFromTine (nth (xs@[Empty]) y) ys)"
+              using lt1 by auto
             have R:"getLabelFromTine (Node n xs) (y#ys) =  
                                             (case nth xs y of 
                                             Empty \<Rightarrow> [] | 
-                                            Node m _ \<Rightarrow> m # getLabelFromTine (nth xs y) ys)" using lt2 by simp
+                                            Node m _ \<Rightarrow> m # getLabelFromTine (nth xs y) ys)"
+              using getLabelFromTine.simps(3) lt2 by presburger 
           then show ?thesis using L R nth_eq
             using local.Cons by presburger
         qed
@@ -587,11 +695,11 @@ qed
 lemma finite_set_of_tines_aux_0 [simp]: "set_of_tines (Node n (xs@[Empty])) = set_of_tines (Node n xs)"
 proof -
   have "set_of_tines (Node n (xs@[Empty])) = {tine. length tine = length (getLabelFromTine (Node n (xs@[Empty])) tine)}"
-    by auto
+    using set_of_tines_def by auto
   hence "set_of_tines (Node n (xs@[Empty])) = {tine. length tine = length (getLabelFromTine (Node n xs) tine)}"
     by auto
   thus ?thesis
-    by simp
+    by (simp add: set_of_tines_def)
 qed   
 
 lemma finite_set_of_tines_aux_1_aux [simp]: "length y = length (getLabelFromTine (Node n (xs@[Node m l])) y) 
@@ -604,17 +712,24 @@ next
   case (Cons y ys)
     have "\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n (xs@[Node m l])) (y#ys) = (case nth (xs@[Node m l]) y of 
                                                                                           Empty \<Rightarrow> [] | 
-                                                                                          Node p _ \<Rightarrow> p # getLabelFromTine (nth (xs@[Node m l]) y) ys)" 
-    by auto
-  hence "\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n (xs@[Node m l])) (y#ys) = (case nth xs y of 
+                                                                                          Node p _ \<Rightarrow> p # getLabelFromTine (nth (xs@[Node m l]) y) ys)"
+      by (metis Suc_leD getLabelFromTine.simps(3) length_append_singleton not_less) 
+        
+  hence 1:"\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n (xs@[Node m l])) (y#ys) = (case nth xs y of 
                                                                                           Empty \<Rightarrow> [] | 
                                                                                           Node p _ \<Rightarrow> p # getLabelFromTine (nth xs y) ys)"
     by (metis nth_in_fst)
-     hence lt:"\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n (xs@[Node m l])) (y#ys) = getLabelFromTine (Node n xs) (y#ys)"
-       by simp
+   hence 2:"\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n xs) (y#ys) = (case nth xs y of 
+                                                                                          Empty \<Rightarrow> [] | 
+                                                                                          Node p _ \<Rightarrow> p # getLabelFromTine (nth xs y) ys)"
+     using getLabelFromTine.simps(3) by presburger
+   hence 3: "\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n xs) (y#ys) = getLabelFromTine (Node n (xs@[Node m l])) (y#ys)"
+     using "1" by presburger
    have cons:"\<forall>y ys. length (y#ys) = length (getLabelFromTine (Node n (xs@[Node m l])) (y#ys)) 
        \<longrightarrow> (y#ys) \<in> set_of_tines (Node n xs) \<or> (y#ys) \<in> {r. \<exists>s \<in> set_of_tines (Node m l). r = (length xs)#s}"
-    using Suc_le_eq length_Cons lt by auto 
+     by (smt "3" Suc_le_eq getLabelFromTine.simps(3) length_Cons length_append_singleton length_greater_0_conv 
+linorder_neqE_nat list.simps(3) mem_Collect_eq nat.inject nattree.simps(5) neq_if_length_neq nth_append_length 
+set_of_tines_def)
   then show ?thesis
     using local.Cons by blast 
 qed
@@ -623,25 +738,31 @@ lemma finite_set_of_tines_aux_1 [simp]: "set_of_tines (Node n (xs@[Node m l])) =
 proof -
   have "\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n (xs@[Node m l])) (y#ys) = (case nth (xs@[Node m l]) y of 
                                                                                           Empty \<Rightarrow> [] | 
-                                                                                          Node p _ \<Rightarrow> p # getLabelFromTine (nth (xs@[Node m l]) y) ys)" 
-    by auto
-  hence "\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n (xs@[Node m l])) (y#ys) = (case nth xs y of 
+                                                                                          Node p _ \<Rightarrow> p # getLabelFromTine (nth (xs@[Node m l]) y) ys)"
+    by (metis Suc_leD getLabelFromTine.simps(3) length_append_singleton not_less) 
+  hence 1:"\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n (xs@[Node m l])) (y#ys) = (case nth xs y of 
                                                                                           Empty \<Rightarrow> [] | 
                                                                                           Node p _ \<Rightarrow> p # getLabelFromTine (nth xs y) ys)"
     by (metis nth_in_fst)
-  hence lt:"\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n (xs@[Node m l])) (y#ys) = getLabelFromTine (Node n xs) (y#ys)"
-    by simp  
+   hence "\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n xs) (y#ys) = (case nth xs y of 
+                                                                                          Empty \<Rightarrow> [] | 
+                                                                                          Node p _ \<Rightarrow> p # getLabelFromTine (nth xs y) ys)"
+     using getLabelFromTine.simps(3) by presburger
+   hence lt:"\<forall>y ys. y < length xs \<longrightarrow> getLabelFromTine (Node n xs) (y#ys) = getLabelFromTine (Node n (xs@[Node m l])) (y#ys)"
+     using "1" by presburger
   have "\<forall>x \<in> set_of_tines (Node n (xs@[Node m l])). x \<in> set_of_tines (Node n xs) \<union> {r. \<exists>s \<in> set_of_tines (Node m l). r = (length xs)#s}"
-    using finite_set_of_tines_aux_1_aux by auto
+    using finite_set_of_tines_aux_1_aux
+    by (simp add: set_of_tines_def) 
   hence "set_of_tines (Node n (xs@[Node m l])) \<subseteq> set_of_tines (Node n xs) \<union> {r. \<exists>s \<in> set_of_tines (Node m l). r = (length xs)#s}"
     by blast 
   have cons:"\<forall>y ys. length (y#ys) = length (getLabelFromTine (Node n xs) (y#ys)) 
        \<longrightarrow> (y#ys) \<in> set_of_tines (Node n (xs@[Node m l]))"
-    using lt by auto
+    using lt
+    by (simp add: set_of_tines_def) 
   hence "\<forall>x. length x = length (getLabelFromTine (Node n xs) x) \<longrightarrow> x \<in> set_of_tines (Node n (xs@[Node m l]))"
     by (metis list.exhaust nil_in_set_of_tines) 
   hence main: "\<forall>x \<in> set_of_tines (Node n xs). x \<in> set_of_tines (Node n (xs@[Node m l]))"
-    by simp
+    using set_of_tines_def by auto
   have "\<forall>x \<in> {r. \<exists>s \<in> set_of_tines (Node m l). r = (length xs)#s}. x \<in> set_of_tines (Node n (xs@[Node m l]))"
     by auto
   hence "set_of_tines (Node n xs) \<union> {r. \<exists>s \<in> set_of_tines (Node m l). r = (length xs)#s} \<subseteq> set_of_tines (Node n (xs@[Node m l]))" using main
@@ -669,7 +790,7 @@ lemma finite_set_of_tines [simp]: "finite (set_of_tines t)"
       proof (induct l rule: rev_induct)
         case Nil
           hence "set_of_tines (Node n []) = {tine. length tine = length (getLabelFromTine (Node n []) tine)}"
-            by simp
+            by (simp add: set_of_tines_def)
           hence "set_of_tines (Node n []) = {tine. length tine = 0}"
             by (metis (no_types, lifting) Collect_cong Leaf.intros ListOfEmpty.Nil getLabelFromTine_Leaf_nil list.size(3))
           hence "set_of_tines (Node n []) = {[]}"
@@ -678,12 +799,14 @@ lemma finite_set_of_tines [simp]: "finite (set_of_tines t)"
             by simp 
       next
         case (snoc x xs)
-        then have "finite (set_of_tines x) \<and> ((\<forall>y \<in> set xs. finite (set_of_tines y)) \<longrightarrow> finite (set_of_tines (Node n xs)))" by simp 
+        then have "finite (set_of_tines x) \<and> ((\<forall>y \<in> set xs. finite (set_of_tines y)) \<longrightarrow> finite (set_of_tines (Node n xs)))"
+          by (meson in_set_conv_decomp) 
         hence "(\<forall>y \<in> set xs. finite (set_of_tines y)) \<longrightarrow> finite (set_of_tines (Node n (xs@[x])))"
           proof (cases x)
             case Empty
             then show ?thesis 
-              using snoc.hyps snoc.prems by auto  
+              using snoc.hyps snoc.prems
+              by (metis finite_set_of_tines_aux_0) 
           next
             case (Node m l)
             hence "finite (set_of_tines (Node m l))"
@@ -692,10 +815,12 @@ lemma finite_set_of_tines [simp]: "finite (set_of_tines t)"
             hence "finite {r. \<exists>s\<in>set_of_tines (Node m l). r = length xs # s}"
               by simp 
             then show ?thesis
-              using Node finite_set_of_tines_aux_1 snoc.hyps by auto 
+              using Node finite_set_of_tines_aux_1 snoc.hyps
+              by (metis (no_types, lifting) finite_UnI) 
           qed
         then show ?case
-          using finite_set_of_tines_aux_1 finite_set_of_tines_aux_0 snoc.prems by auto
+          using finite_set_of_tines_aux_1 finite_set_of_tines_aux_0 snoc.prems
+          by (metis UnCI set_append) 
       qed
   qed
   
@@ -705,7 +830,7 @@ fun edge_disjoint_tines :: "nat list \<Rightarrow> nat list \<Rightarrow> bool" 
 | "edge_disjoint_tines (x#xs) (y#ys) = (x\<noteq>y)"
 
 text "Definition 4.11: flatTree"
-fun flatTree :: "nattree \<Rightarrow> bool" where
+definition flatTree :: "nattree \<Rightarrow> bool" where
  "flatTree F = 
 (\<exists> t1 \<in> set_of_tines F. 
  \<exists> t2 \<in> set_of_tines F. 
@@ -728,18 +853,19 @@ lemma Leaf_imp_nil_label_tine [simp]: assumes "Leaf (Node n l)" shows "getLabelF
       next 
         case False 
         have "a < length l"
-          using False by auto
+          using False
+          by (simp add: not_le_imp_less) 
         then have "nth l a = Empty"
           using Leaf_non_ListOfEmpty assms nth_mem by blast 
         then show ?thesis
-          by (simp add: local.Cons)         
+          using assms getLabelFromTine_Leaf_nil by blast      
       qed
   qed
  
 lemma flatTree_trivial [simp]: assumes "Leaf (Node n l)" shows "flatTree (Node n l)"
 proof -
   have "set_of_tines (Node n l) = {tine. length tine = length (getLabelFromTine (Node n l) tine)}"
-    by (metis set_of_tines.elims)
+    using set_of_tines_def by blast  
   then have "set_of_tines (Node n l) = {tine. length tine = length []}"
     by (metis (no_types, lifting) Collect_cong Leaf_imp_nil_label_tine assms list.size(3))
   then have "set_of_tines (Node n l) = {tine. length tine = 0}"
@@ -747,7 +873,7 @@ proof -
   then have "set_of_tines (Node n l) = {[]}"
     by blast
   then show "flatTree (Node n l)"
-    by (metis assms edge_disjoint_tines.simps(1) flatTree.simps height.simps(2) list.size(3) singletonI)
+    by (metis assms edge_disjoint_tines.simps(1) flatTree_def height.simps(2) list.size(3) nil_in_set_of_tines)
 qed      
 
 definition isForkable :: "bool list \<Rightarrow> bool" where
@@ -814,7 +940,8 @@ proof -
   then have "max_node (Node n l) = max n (ListMax (map max_node l))"
     using ListMax_def by auto
   then show "max_node (Node n l) = n "
-    using  Leaf.simps assms by auto
+    using  Leaf.simps assms
+    by (metis ListOfEmpty_max_node_ListMax_0 max_0R nattree.inject) 
 qed
     
 lemma flatFork_Trivial : assumes "Leaf (Node 0 l)" and "ListOfAdverse w" shows "flatFork w (Node 0 l)"  
@@ -869,6 +996,35 @@ fun closedFork_Hgiven :: "nattree \<Rightarrow> nat set \<Rightarrow> bool" wher
                                      then (n \<in> h) 
                                      else foldr conj (map (\<lambda>x. closedFork_Hgiven x h) l) True)"
 
+lemma foldr_conj_eq_forall [simp]: "foldr conj l True \<longleftrightarrow> (\<forall> x \<in> set l. x)"    
+  proof (induction l)
+    case Nil
+    then show ?case
+      by auto 
+  next
+    case (Cons x xs)
+    hence "foldr conj (x#xs) True = (x \<and> foldr conj xs True)"
+      by auto
+    then show ?case
+      using Cons.IH by auto 
+  qed
+  
+lemma closedFork_Hgiven_imp_branches [simp]: "closedFork_Hgiven (Node n l) h \<longrightarrow> (\<forall>z \<in> set l. closedFork_Hgiven z h)"
+  proof (cases "ListOfEmpty l")
+    case True
+    then show ?thesis
+      by (metis Leaf.intros Leaf_non_ListOfEmpty closedFork_Hgiven.simps(1)) 
+  next
+    case False
+      hence "closedFork_Hgiven (Node n l) h \<longrightarrow> foldr conj (map (\<lambda>x. closedFork_Hgiven x h) l) True"
+        by simp
+       hence "closedFork_Hgiven (Node n l) h \<longrightarrow> (\<forall> x \<in> set (map (\<lambda>x. closedFork_Hgiven x h) l). x)"
+         using foldr_conj_eq_forall by blast
+       hence "closedFork_Hgiven (Node n l) h \<longrightarrow> (\<forall>x \<in> set l. closedFork_Hgiven x h \<in> set (map (\<lambda>x. closedFork_Hgiven x h) l)) "
+         by simp   
+    then show ?thesis  using \<open>closedFork_Hgiven (Node n l) h \<longrightarrow> (\<forall>x\<in>set (map (\<lambda>x. closedFork_Hgiven x h) l). x)\<close> by auto
+  qed
+  
 text "A closed fork has to be a fork of a certain string and closed in regard to that string."
 definition closedFork :: "nattree \<Rightarrow> bool list \<Rightarrow> bool" where
   "closedFork F w = (isFork w F \<and> closedFork_Hgiven F (H w))"
@@ -955,7 +1111,8 @@ proof -
   then have "\<forall> tine. length (getLabelFromTine t tine) = 0"
     by simp
   then have "set_of_tines t = {[]}"
-    by simp
+    using set_of_tines_def
+    by auto
   then have exist: "\<exists> x \<in> set_of_tines t. reach t w x \<ge> 0"
     using reachge0 by blast
   then have all: "\<forall> x \<in> set_of_tines t. reach t w x \<ge> 0"
@@ -965,7 +1122,7 @@ proof -
   hence "{r. \<exists> x \<in> set_of_tines t. r = reach t w x} = {r. r = int (reserve w (getLabelFromTine t [])) - int (gap t [])}"
     using reach_def by auto
   hence "{r. \<exists> x \<in> set_of_tines t. r = reach t w x} = {r. r = int (reserve w []) - 0}"
-    by (metis a b getLabelFromTine.simps(2) of_nat_0)
+    by (metis b getLabelFromTine.simps(2) of_nat_0)
   hence "{r. \<exists> x \<in> set_of_tines t. r = reach t w x} = {r. r = int (foldr (\<lambda>x.(plus (of_bool x))) w 0)}"
     using reserve_def by auto
   hence "{r. \<exists> x \<in> set_of_tines t. r = reach t w x} = {int (length w)}"
@@ -999,7 +1156,8 @@ proof -
   hence "finite {(x,y). x \<in> set_of_tines F  \<and> y \<in> set_of_tines F}"
     using \<open>finite (set_of_tines F \<times> set_of_tines F)\<close> by auto
   thus ?thesis
-    using \<open>{(x, y). x \<in> set_of_tines F \<and> y \<in> set_of_tines F \<and> edge_disjoint_tines x y} \<subseteq> {(x, y). x \<in> set_of_tines F \<and> y \<in> set_of_tines F}\<close> f1 infinite_super by auto 
+    using \<open>{(x, y). x \<in> set_of_tines F \<and> y \<in> set_of_tines F \<and> edge_disjoint_tines x y} \<subseteq> {(x, y). x \<in> set_of_tines F \<and> y \<in> set_of_tines F}\<close> f1 infinite_super
+    by fastforce 
   qed
     
 definition margin :: "nattree \<Rightarrow>  bool list \<Rightarrow> int" where
@@ -1022,7 +1180,7 @@ proof -
   then have "\<forall> tine. length (getLabelFromTine t tine) = 0"
     by simp
   then have set_nil:"set_of_tines t = {[]}"
-    by simp
+    by (simp add: set_of_tines_def)
    then have c:"\<exists> x \<in> set_of_tines t. reach t w x \<ge> 0"
     using reachge0 by blast
   then have d: "set_of_edge_disjoint_tines t  
@@ -1048,7 +1206,7 @@ min (reach t w a) (reach t w b) \<ge> 0"
   hence "{r. \<exists> (a,b) \<in> set_of_edge_disjoint_tines t. r = min (reach t w a) (reach t w b)} = {r. r = int (reserve w (getLabelFromTine t [])) - int (gap t [])}"
     using reach_def by auto
   hence "{r. \<exists> (a,b) \<in> set_of_edge_disjoint_tines t. r = min (reach t w a) (reach t w b)} = {r. r = int (reserve w []) - 0}"
-    by (metis a b getLabelFromTine.simps(2) of_nat_0)
+    by (metis b getLabelFromTine.simps(2) of_nat_0)
   hence "{r. \<exists> (a,b) \<in> set_of_edge_disjoint_tines t. r = min (reach t w a) (reach t w b)} = {r. r = int (foldr (\<lambda>x.(plus (of_bool x))) w 0)}"
     using reserve_def by auto
   hence "{r. \<exists> (a,b) \<in> set_of_edge_disjoint_tines t. r = min (reach t w a) (reach t w b)} = {int (length w)}"
@@ -1061,10 +1219,6 @@ min (reach t w a) (reach t w b) \<ge> 0"
 
 text "This function is to construct, from an increasing tree, a tree not containing greater-labelled 
 nodes than a certain number."
-  
-fun remove_greater :: "nat \<Rightarrow> nattree \<Rightarrow> nattree" where
-    "remove_greater _ Empty = Empty" (*Don't care*)
-  | "remove_greater m (Node n l) = (if n < m then Node n (map (remove_greater m) l) else Empty)"
 
 definition max_honest_node :: "bool list \<Rightarrow> nat" where
   "max_honest_node w = Max (H w)"
@@ -1115,20 +1269,20 @@ proof -
   then show ?thesis using finite_honest_node
     by (metis Max_in \<open>0 \<in> H w\<close> equals0D max_honest_node_def) 
 qed
-  
+ 
 fun count_node_by_set :: "nat set \<Rightarrow> nattree \<Rightarrow> nat" where
   "count_node_by_set _ Empty = 0"
-| "count_node_by_set s (Node n l) = (of_bool (n \<in> s)) +  ListSum (map (count_node_by_set s) l)"  
+| "count_node_by_set s (Node n l) = (of_bool (n \<in> s)) +  ListSum (map (count_node_by_set s) l)"     
 
 definition count_honest_node :: "bool list \<Rightarrow> nattree \<Rightarrow> nat" where
   "count_honest_node w t = count_node_by_set (H w) t"
-
+  
 lemma map_ListOfEmpty [simp]: "ListOfEmpty (map (\<lambda>x. Empty) l)"
   apply (induction l)
   apply (simp add: ListOfEmpty.Nil)
-  by (simp add: ListOfEmpty.Cons)
+  by (simp add: ListOfEmpty.Cons)  
   
-fun toClosedFork :: "bool list \<Rightarrow> nattree \<Rightarrow> nattree" where
+function toClosedFork :: "bool list \<Rightarrow> nattree \<Rightarrow> nattree" where
   "toClosedFork _ Empty = Empty"
 | "toClosedFork w (Node n l) = 
 (if count_honest_node w (Node n l) = of_bool (isHonest w n) (*0 or 1 *)
@@ -1137,7 +1291,16 @@ fun toClosedFork :: "bool list \<Rightarrow> nattree \<Rightarrow> nattree" wher
     then Node n (map (\<lambda>x. Empty) l)
     else  Empty)
   else Node n (map (toClosedFork w) l))"
+  apply (metis isFork.cases size_from_height.cases)   
+    apply simp
+   apply blast
+  by blast
 
+termination toClosedFork 
+apply (relation "measure (\<lambda>(i,N). size_from_height N)")
+   apply simp
+  by (simp add: le_imp_less_Suc)
+    
 lemma isFork_toClosedFork_isFork_aux_1 [simp]: 
  "length w \<ge> max_node F \<longrightarrow> length w \<ge> max_node (toClosedFork w F)"
 proof (induction F)
@@ -1170,7 +1333,7 @@ next
           by simp
         hence "max_node (toClosedFork w (Node n l)) 
 =  ListMax (n # (map max_node (map (toClosedFork w) l)))"
-          by simp
+          using max_node.simps(2) by presburger     
         have f1 :"length w \<ge> max_node (Node n l) \<longrightarrow> length w \<ge> n"
           by (metis \<open>n \<le> max_node (Node n l)\<close> le_trans)
         have "length w \<ge> max_node (Node n l) \<longrightarrow> (\<forall> x \<in> set l. length w \<ge> max_node x)"
@@ -1322,9 +1485,18 @@ listmax_0 map_ListOfEmpty of_bool_eq(2) toClosedFork.simps(2))
         have "toClosedFork w (Node m l) = Node m (map (toClosedFork w) l)"
           by (simp add: False)
         hence LHS:"count_node n (Node m l) = (of_bool (m = n)) + ListSum (map (count_node n) l)"
-          by auto
+        proof -
+          show ?thesis
+            by auto
+        qed
         hence RHS:"count_node n (toClosedFork w (Node m l)) = (of_bool (m = n)) + ListSum (map (count_node n) (map (toClosedFork w) l))"
-          using \<open>toClosedFork w (Node m l) = Node m (map (toClosedFork w) l)\<close> by auto
+          using \<open>toClosedFork w (Node m l) = Node m (map (toClosedFork w) l)\<close>
+        proof -
+          have "count_node n (toClosedFork w (Node m l)) = of_bool (n = m) + ListSum (map (count_node n) (map (toClosedFork w) l))"
+            using \<open>toClosedFork w (Node m l) = Node m (map (toClosedFork w) l)\<close> count_node.simps(2) by presburger
+          then show ?thesis
+            by auto
+        qed
         have "\<forall>x \<in> set l. count_node n x = count_node n (toClosedFork w x)"
           by (simp add: Node.IH)
         hence "map (count_node n) l = map (count_node n) (map (toClosedFork w) l)"
@@ -1364,7 +1536,28 @@ next
     using SucOption_none by blast
   hence "depth (Node n l) m = None \<longrightarrow> (\<forall>x \<in> set l. depth x m = None)" by (metis ListMaxOption_none_imp_all_none image_eqI image_set) 
   then show ?case
-    by (smt ListSum_0 Listmax_ge Node.IH \<open>depth (Node n l) m = None \<longrightarrow> n \<noteq> m\<close> add.left_neutral count_node.simps(2) le_0_eq listmax_0 of_bool_eq(1)) 
+  proof -
+    have f1: "\<forall>b. if b then of_bool b = (1::nat) else of_bool b = (0::nat)"
+      by (meson of_bool_def)
+    obtain nn :: "nat list \<Rightarrow> nat" where
+      f2: "\<forall>ns. (nn ns \<in> set ns \<and> nn ns \<noteq> 0 \<or> ListSum ns = 0) \<and> ((\<forall>n. n \<notin> set ns \<or> n = 0) \<or> ListSum ns \<noteq> 0)"
+      by (metis (no_types) ListSum_0)
+    obtain nna :: "nattree set \<Rightarrow> (nattree \<Rightarrow> nat) \<Rightarrow> nat \<Rightarrow> nattree" where
+      "\<forall>x0 x1 x2. (\<exists>v3. x2 = x1 v3 \<and> v3 \<in> x0) = (x2 = x1 (nna x0 x1 x2) \<and> nna x0 x1 x2 \<in> x0)"
+      by moura
+    then have "\<forall>n f N. n \<notin> f ` N \<or> n = f (nna N f n) \<and> nna N f n \<in> N"
+      by (meson imageE)
+    moreover
+    { assume "nn (map (count_node m) l) \<notin> set (map (count_node m) l) \<or> nn (map (count_node m) l) = 0"
+      then have "ListSum (map (count_node m) l) = 0"
+        using f2 by metis
+      then have "of_bool (n = m) = (0::nat) \<longrightarrow> of_bool (m = n) = (0::nat) \<and> ListSum (map (count_node m) l) = 0"
+        by simp
+      then have "depth (Node n l) m = None \<longrightarrow> depth (Node n l) m = None \<longrightarrow> count_node m (Node n l) = 0"
+        using f1 \<open>depth (Node n l) m = None \<longrightarrow> n \<noteq> m\<close> count_node.simps(2) by presburger }
+    ultimately show ?thesis
+      by (metis (no_types) Node.IH \<open>depth (Node n l) m = None \<longrightarrow> (\<forall>x\<in>set l. depth x m = None)\<close> set_map)
+  qed
 qed
 
 lemma zero_exist_imp_none_depth [simp]: "count_node m F = 0 \<longrightarrow> depth F m = None" 
@@ -1464,33 +1657,21 @@ proof -
      case True
      hence "toClosedFork w F = Node 0 (map (\<lambda>x. Empty) l)"
        by (metis (full_types) H_0 \<open>F = Node 0 l\<close> isHonest_def of_bool_eq(2) toClosedFork.simps(2))
-     then show ?thesis by (simp add: root_label_0.simps)
+     then show ?thesis
+       by (simp add: \<open>toClosedFork w F = Node 0 (map (\<lambda>x. Empty) l)\<close> root_label_0.intros) 
    next
      case False
        hence "toClosedFork w F = Node 0 (map (toClosedFork w) l)"
          by (metis (full_types) H_0 \<open>F = Node 0 l\<close> count_honest_node_def count_node_by_set.simps(2)
  le_add_same_cancel1 not_one_le_zero of_bool_eq(1) of_bool_eq(2) toClosedFork.simps(2) zero_le)
      then show ?thesis
-       by (simp add: root_label_0.simps) 
+       by (simp add: \<open>toClosedFork w F = Node 0 (map (toClosedFork w) l)\<close> root_label_0.intros)
    qed
 qed
   
 lemma isFork_toClosedFork_isFork [simp]: "isFork w F \<longrightarrow> isFork w (toClosedFork w F)"
   using isFork.simps isFork_toClosedFork_isFork_aux_1 isFork_toClosedFork_isFork_aux_2 
 isFork_toClosedFork_isFork_aux_3 isFork_toClosedFork_isFork_aux_4 isFork_toClosedFork_isFork_aux_5 by blast
-  
-lemma foldr_conj_eq_forall [simp]: "foldr conj l True \<longleftrightarrow> (\<forall> x \<in> set l. x)"    
-  proof (induction l)
-    case Nil
-    then show ?case
-      by auto 
-  next
-    case (Cons x xs)
-    hence "foldr conj (x#xs) True = (x \<and> foldr conj xs True)"
-      by auto
-    then show ?case
-      using Cons.IH by auto 
-  qed
   
 lemma toClosedFork_closedFork_aux [simp]: "(closedFork_Hgiven (toClosedFork w F) (H w))"  
 proof (induction F)
@@ -1541,8 +1722,13 @@ next
           proof -
            have "0 < count_honest_node w child"
             using \<open>child \<in> set l \<and> 0 < count_node_by_set (H w) child\<close> count_honest_node_def by presburger
-           then show ?thesis
-             by (simp add: \<open>child = Node m bl\<close>)
+          then show ?thesis
+          proof -
+            have "\<forall>bs n na. toClosedFork bs n \<noteq> na \<or> Empty = n \<and> Empty = na \<or> (\<exists>nb ns. Node nb ns = n \<and> (count_honest_node bs (Node nb ns) \<noteq> of_bool (isHonest bs nb) \<or> (\<not> isHonest bs nb \<or> Node nb (map (\<lambda>n. Empty) ns) = na) \<and> (isHonest bs nb \<or> Empty = na)) \<and> (count_honest_node bs (Node nb ns) = of_bool (isHonest bs nb) \<or> Node nb (map (toClosedFork bs) ns) = na))"
+              by (metis map_eq_map_tailrec nattree.distinct(1) toClosedFork.elims)
+            then show ?thesis
+              by (metis (no_types) \<open>0 < count_honest_node w child\<close> \<open>child = Node m bl\<close> nattree.simps(3) not_gr_zero of_bool_def)
+          qed        
          qed
         hence "\<not> ListOfEmpty (map (toClosedFork w) l)"
           by (metis Leaf.intros Leaf_non_ListOfEmpty \<open>child = Node m bl\<close> \<open>child \<in> set l \<and> 0 < count_node_by_set (H w) child\<close> image_eqI set_map)
@@ -1565,7 +1751,7 @@ next
 qed
    
 lemma length_langest_tine_eq_height_aux_0 [simp]: "x \<in> set_of_tines F \<longrightarrow> length x \<le> height F"
-  by simp
+  by (simp add: set_of_tines_def)
   
 lemma length_langest_tine_eq_height_aux_1 [simp]: "\<exists> x \<in> set_of_tines F. length x = height F"
  proof (induction F)
@@ -1606,7 +1792,7 @@ lemma length_langest_tine_eq_height [simp]: "(\<forall>x \<in> set_of_tines F. l
 lemma exist_Some_eq_ListMaxOption_ne_None [simp]: "(\<exists>x. Some x \<in> set l) \<longleftrightarrow> ListMaxOption l \<noteq> None"
   by auto     
     
-lemma ListMaxOption_Max_Some [simp]: "ListMaxOption l = None \<or> (\<exists>x. ListMaxOption l = Some x \<and> Some x \<in> set l \<and> (\<forall>y. Some y \<in> set l \<longrightarrow> y \<le> x))"
+lemma ListMaxOption_Max_Some [simp]: "ListMaxOption l = None \<or> (\<exists>x. ListMaxOption l = Some x \<and> Some x \<in> set l \<and> (\<forall>y. Some y \<in> set l \<longrightarrow> y \<le> x))" 
   proof (induction l)
     case Nil
     then show ?case by simp
@@ -1711,6 +1897,25 @@ fun max_exist_honest_node :: "nattree \<Rightarrow> bool list \<Rightarrow> nat"
 then max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) 
 else ListMax (map (\<lambda>x. max_exist_honest_node x w) l))"    
 
+lemma max_exist_honest_node_isHonest [simp]: "isHonest w (max_exist_honest_node F w)"
+  proof (induction F)
+    case Empty
+    then show ?case 
+      using H_0 isHonest_def max_exist_honest_node.simps(1) by presburger 
+  next
+    case (Node n l)
+      hence 1:"max_exist_honest_node (Node n l) w = (if isHonest w n 
+                then max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) 
+                else ListMax (map (\<lambda>x. max_exist_honest_node x w) l))"
+        by simp
+      hence 2: "isHonest w n \<longrightarrow> max_exist_honest_node (Node n l) w = max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l))"
+        by simp    
+      hence "isHonest w n \<longrightarrow>  max_exist_honest_node (Node n l) w = n \<or> max_exist_honest_node (Node n l) w = ListMax (map (\<lambda>x. max_exist_honest_node x w) l)"
+        by linarith
+    then show ?case
+      by (metis (no_types, lifting) "1" H_0 ListMax_0 ListMax_member Node.IH imageE isHonest_def set_map)
+  qed
+  
 lemma  exist_le_real_max [simp]: "max_exist_honest_node F w \<le> max_honest_node w" 
 proof (induction F)
   case Empty
@@ -1729,7 +1934,23 @@ listmax_0 max_exist_honest_node.simps(1) set_map)
     by (metis Sup_fin.bounded_iff Sup_fin_Max equals0D finite_honest_node isHonest_def le_refl max_honest_node_def)
   then show ?case using f1 f2 f3 by simp
 qed
-    
+
+lemma max_exist_honest_node_ge_branches [simp]: "\<forall>x \<in> set l. max_exist_honest_node (Node n l) w \<ge> max_exist_honest_node x w"
+proof -
+  have "max_exist_honest_node (Node n l) w = (if isHonest w n 
+        then max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) 
+        else ListMax (map (\<lambda>x. max_exist_honest_node x w) l))"
+    by auto
+  have "\<forall>y \<in> set (map (\<lambda>x. max_exist_honest_node x w) l). max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) \<ge> y"
+    using Listmax_ge max.coboundedI2 by blast   
+  hence f1:"\<forall>y \<in> set l. max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) \<ge> max_exist_honest_node y w"
+    by simp
+  hence "max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) \<ge> max_exist_honest_node (Node n l) w"
+    by auto
+  thus ?thesis using f1
+    by simp
+qed
+      
 lemma isFork_max_exist_honest_node_eq_max_honest_node [simp]: 
 "count_node (max_honest_node w) F \<noteq> 0 \<longrightarrow> max_exist_honest_node F w = max_honest_node w" 
 proof (induction F) 
@@ -1791,18 +2012,113 @@ else ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) " by simp
       by fastforce
   qed
 qed
-
+  
+lemma max_exist_honest_node_is_max [simp]: "\<forall>x \<in> H w. x > max_exist_honest_node F w \<longrightarrow> count_node x F = 0" 
+  proof (induction F)
+    case Empty
+    then show ?case
+      using count_node.simps(1) by blast 
+  next
+    case (Node n l)
+      hence "\<forall>x \<in> set l. max_exist_honest_node (Node n l) w \<ge> max_exist_honest_node x w"
+        using max_exist_honest_node_ge_branches by blast
+      have "\<forall>x \<in> H w. x > max_exist_honest_node (Node n l) w \<longrightarrow> (\<forall>z \<in> set l. count_node x z = 0)"
+        by (meson Node.IH le_less_trans max_exist_honest_node_ge_branches) 
+      have "max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) \<ge> n"
+        using max.cobounded1 by blast
+      hence "n \<in> H w \<longrightarrow> max_exist_honest_node (Node n l) w \<ge> n"
+        using isHonest_def max_exist_honest_node.simps(2) by presburger
+      hence "n \<in> H w \<longrightarrow> (\<forall>x \<in> H w. x > max_exist_honest_node (Node n l) w \<longrightarrow> count_node x(Node n l) = 0)"
+        by (smt ListSum_0 Suc_leI \<open>\<forall>x\<in>H w. max_exist_honest_node (Node n l) w < x \<longrightarrow> (\<forall>z\<in>set l. count_node x z = 0)\<close> 
+add.left_neutral count_node.simps(2) imageE not_less_eq_eq of_bool_eq(1) set_map)
+      then show ?case
+      by (smt ListSum_0 \<open>\<forall>x\<in>H w. max_exist_honest_node (Node n l) w < x \<longrightarrow> (\<forall>z\<in>set l. count_node x z = 0)\<close> 
+add_is_0 count_node.simps(2) imageE of_bool_eq(1) set_map) 
+  qed
+  
 definition H_tree_and_string :: "nattree \<Rightarrow> bool list \<Rightarrow> nat set" where
   "H_tree_and_string t w= {x. x \<in> H w \<and> count_node x t > 0}"
 
+lemma max_exist_honest_member_H_tree_and_string [simp]: "max_exist_honest_node F w \<in> H_tree_and_string F w \<or> max_exist_honest_node F w = 0"
+  proof (induction F)
+    case Empty
+    then show ?case by auto
+  next
+    case (Node n l)
+    then show ?case 
+      proof (cases "max_exist_honest_node (Node n l) w = n")
+        case True
+          hence "isHonest w n"
+            by (metis max_exist_honest_node_isHonest) 
+        then show ?thesis
+        proof -
+          have "0 < count_node n (Node n l)"
+            by simp
+          then have "n \<in> {na \<in> H w. 0 < count_node na (Node n l)}"
+            using \<open>isHonest w n\<close> isHonest_def by blast
+          then show ?thesis
+            using H_tree_and_string_def True by presburger
+        qed 
+      next
+        case False
+          hence f1:"max_exist_honest_node (Node n l) w = ListMax (map (\<lambda>x. max_exist_honest_node x w) l)"
+            by (smt map_eq_conv max_def max_exist_honest_node.simps(2))        
+          then show ?thesis 
+            proof (cases "l = Nil")
+              case True
+              then show ?thesis
+                by (metis ListMax_0 \<open>max_exist_honest_node (Node n l) w = ListMax (map (\<lambda>x. max_exist_honest_node x w) l)\<close> list.simps(8)) 
+            next
+              case False
+                then obtain x where x:"x \<in> set l \<and> max_exist_honest_node x w = ListMax (map (\<lambda>x. max_exist_honest_node x w) l)"
+                  by (metis (no_types, lifting) ListMax_member imageE image_set map_is_Nil_conv)
+                hence "max_exist_honest_node x w \<in> H_tree_and_string x w \<or> max_exist_honest_node x w = 0"
+                  by (meson Node.IH)
+                have "max_exist_honest_node x w = max_exist_honest_node (Node n l) w"
+                  using f1 x by linarith
+                hence "max_exist_honest_node (Node n l) w \<in> H_tree_and_string x w \<or> max_exist_honest_node (Node n l) w = 0"
+                  using \<open>max_exist_honest_node x w \<in> H_tree_and_string x w \<or> max_exist_honest_node x w = 0\<close> by presburger
+              then show ?thesis
+                by (smt H_tree_and_string_def ListSum_ge One_nat_def Suc_leI count_node.simps(2) gr0I 
+image_eqI image_set le_trans mem_Collect_eq not_one_le_zero x zero_eq_add_iff_both_eq_0) 
+            qed
+      qed
+  qed
+  
+lemma max_exist_honest_node_ge_member_H_tree_and_string [simp]: "(\<forall>x \<in> H_tree_and_string F w. max_exist_honest_node F w \<ge> x)"
+  proof (induction F)
+    case Empty
+    then show ?case
+      using H_tree_and_string_def count_node.simps(1) gr_implies_not0 by blast 
+  next
+    case (Node n l)
+    then show ?case 
+      proof (cases "max_exist_honest_node (Node n l) w = n")
+        case True
+          hence "n \<ge> ListMax (map (\<lambda>x. max_exist_honest_node x w) l)"
+            by (metis max.coboundedI2 max_exist_honest_node.elims nat_le_linear nattree.distinct(1) nattree.inject)
+          hence "\<forall>x \<in> H_tree_and_string (Node n l) w. x = n \<or> (\<exists> z \<in> set l. max_exist_honest_node z w \<ge> x)"
+            by (smt H_tree_and_string_def ListSum_0 Node.IH add_is_0 count_node.simps(2) gr_implies_not_zero 
+imageE image_set leI le_zero_eq mem_Collect_eq of_bool_eq(1))
+        then show ?thesis
+          by (metis True eq_iff le_trans max_exist_honest_node_ge_branches) 
+      next
+        case False
+        hence "max_exist_honest_node (Node n l) w = ListMax (map (\<lambda>x. max_exist_honest_node x w) l)"
+          by (smt map_eq_conv max_def max_exist_honest_node.simps(2))
+        hence "n \<in> H_tree_and_string (Node n l) w \<longrightarrow> max_exist_honest_node (Node n l) w > n"
+          by (metis (no_types, lifting) False H_tree_and_string_def isHonest_def le_max_iff_disj le_neq_implies_less le_refl max_exist_honest_node.simps(2) mem_Collect_eq)
+          hence "\<forall>x \<in> H_tree_and_string (Node n l) w. x = n \<or> (\<exists> z \<in> set l. max_exist_honest_node z w \<ge> x)"
+            by (smt H_tree_and_string_def ListSum_0 Node.IH add_is_0 count_node.simps(2) gr_implies_not_zero 
+imageE image_set leI le_zero_eq mem_Collect_eq of_bool_eq(1))
+          then show ?thesis
+            by (metis \<open>n \<in> H_tree_and_string (Node n l) w \<longrightarrow> n < max_exist_honest_node (Node n l) w\<close> 
+dual_order.strict_iff_order max.bounded_iff max_def max_exist_honest_node_ge_branches) 
+       qed
+  qed
+  
 definition uniqueH_nodes_in_tree :: "nattree \<Rightarrow> bool list \<Rightarrow> bool" where
   "uniqueH_nodes_in_tree t l =(\<forall>x \<in> H l. count_node x t \<le> 1)"
-  
-lemma ind_increasing_depth_H_tree_string [simp]: 
-"(uniqueH_nodes_in_tree (Node n l) w) \<and> (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
-\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y)) \<longrightarrow> 
-(\<forall> z \<in> set l . (uniqueH_nodes_in_tree z w) \<and> (\<forall> x y. x \<in> (H_tree_and_string z w) \<and> y \<in> (H_tree_and_string z w) \<and> x < y \<longrightarrow> lt_option (depth z x) (depth z y)))"  
-  sorry
    
 lemma ind_uniqueH_nodes_in_tree [simp]: 
 "uniqueH_nodes_in_tree (Node n l) w \<longrightarrow> (\<forall>x \<in> set l. uniqueH_nodes_in_tree x w)"
@@ -1811,18 +2127,472 @@ proof -
     using uniqueH_nodes_in_tree_def by blast
   hence "uniqueH_nodes_in_tree (Node n l) w = (\<forall>x \<in> H w. (of_bool (n = x)) + ListSum (map (count_node x) l) \<le> 1)"
     by (smt count_node.simps(2))
-  hence "uniqueH_nodes_in_tree (Node n l) w = (\<forall>x \<in> H w. ListSum (map (count_node x) l) \<le> 1)"
+  hence "uniqueH_nodes_in_tree (Node n l) w \<longrightarrow> (\<forall>x \<in> H w. ListSum (map (count_node x) l) \<le> 1)"
+    using le_add2 le_trans by blast
+  hence "uniqueH_nodes_in_tree (Node n l) w \<longrightarrow> (\<forall>x \<in> H w. \<forall>y \<in> set l. count_node x y \<le> 1)"
+    by (metis (no_types, lifting) ListSum_ge dual_order.trans image_eqI image_set)
   then show ?thesis
+    using uniqueH_nodes_in_tree_def by blast
 qed   
+
+lemma ind_increasing_depth_H_tree_string_aux_exist [simp]:    
+  assumes "count_node x (Node n l) = 1" 
+  shows "((depth (Node n l) x = Some 0 \<and> n = x) 
+ \<or>
+(\<exists>d. \<exists>z \<in> set l. depth (Node n l) x = Some (Suc d) \<and> 
+depth z x = Some d \<and> count_node x z = 1))"
+proof (cases "n =x")
+  case True
+  then show ?thesis
+    by (meson depth.simps(2)) 
+next
+  case False
+    then obtain d where d:"depth (Node n l) x = Some (Suc d)"
+      by (metis SucOption_def assms depth.simps(2) none_depth_imp_zero_exist option.case_eq_if zero_neq_one)
+   have "depth (Node n l) x = ( SucOption (ListMaxOption (map (\<lambda>y. depth y x) l)))" using False
+     using depth.simps(2) by presburger
+   hence "ListMaxOption (map (\<lambda>y. depth y x) l) = Some d" using d
+     by (smt ListMaxOption_Max_Some SucOption_def Suc_eq_plus1_left add_diff_cancel_left' option.inject option.simps(4) option.simps(5))
+   then obtain z where z:"z \<in> set l \<and> depth z x = Some d"
+     by (metis ListMaxOption_Max_Some imageE image_set option.simps(3))
+   hence "count_node x z > 0"
+     by (metis neq0_conv option.simps(3) zero_exist_imp_none_depth)
+   hence "count_node x z \<le> 1" using assms
+     by (smt False ListSum_ge One_nat_def Suc_eq_plus1 z add_diff_cancel_left' count_node.simps(2) image_eqI image_set of_bool_eq(1))
+   hence "count_node x z = 1"
+     using \<open>0 < count_node x z\<close> by linarith
+  then show ?thesis using d z by blast
+qed
+
+lemma ind_increasing_depth_H_tree_string_aux_all [simp]:    
+  "count_node x (Node n l) = 1 \<and> depth (Node n l) x = Some (Suc d)
+  \<longrightarrow> (\<forall>z \<in> set l. count_node x z = 1 \<longrightarrow> 
+depth z x = Some d)"
+proof (rule ccontr)
+    assume assm:"\<not> (count_node x (Node n l) = 1 \<and> depth (Node n l) x = Some (Suc d) \<longrightarrow>
+        (\<forall>z\<in>set l. count_node x z = 1 \<longrightarrow> depth z x = Some d))"
+    then obtain z1 where z1: "z1 \<in> set l \<and> count_node x z1 = 1 \<and> depth z1 x \<noteq> Some d"
+      by blast
+    hence "x = n \<longrightarrow> count_node x (Node n l) > 1"
+      by (metis assm depth.simps(2) nat.discI option.inject)
+    hence ne:"x \<noteq> n"
+      using assm by linarith 
+    obtain d1 where d1:"z1 \<in> set l \<and> count_node x z1 = 1 \<and> depth z1 x = Some d1 \<and> d1 \<noteq> d"
+      using z1 by (metis depth_le_height le_option.cases zero_neq_one)
+    have "depth (Node n l) x = (if n = x then (Some 0) 
+                          else SucOption (ListMaxOption (map (\<lambda>y. depth y x) l)))"
+      by simp
+    hence "depth (Node n l) x = SucOption (ListMaxOption (map (\<lambda>y. depth y x) l))"
+      using ne
+      by presburger
+    hence "(ListMaxOption (map (\<lambda>y. depth y x) l) = Some d) \<and> d1 \<le> d" 
+      using d1 ListMaxOption_Max_Some SucOption_ne_Some_0
+      by (smt SucOption_def assm image_eqI image_set nat.inject option.inject option.simps(3) option.simps(4) option.simps(5)) 
+    obtain z where "z \<in> set l \<and> count_node x z = 1 \<and> depth z x = Some d" using assm
+     using ne
+     by (metis assm diff_Suc_1 ind_increasing_depth_H_tree_string_aux_exist option.inject)    
+    hence "z \<noteq> z1  \<and> count_node x z = 1  \<and> count_node x z1 = 1" using z1
+      by blast
+    hence "(count_node x (Node n l) > 1)" using ListSum_ge_lifting_2
+      by (smt \<open>x = n \<longrightarrow> 1 < count_node x (Node n l)\<close> \<open>z \<in> set l \<and> count_node x z = 1 \<and> depth z x = Some d\<close> assm comm_monoid_add_class.add_0 count_node.simps(2) discrete of_bool_eq(1)) 
+    thus "False"
+      using assm by linarith    
+qed    
+  
+lemma lt_option_R_ne_Some_0 [simp]: assumes "lt_option x y" shows "y \<noteq> Some 0"
+  using assms lt_option.simps by blast
+  
+lemma ind_increasing_depth_H_tree_string [simp]: 
+"((uniqueH_nodes_in_tree (Node n l) w) \<and> (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> 
+(\<forall> z \<in> set l . (uniqueH_nodes_in_tree z w) \<and> (\<forall> x y. x \<in> (H_tree_and_string z w) \<and> y \<in> (H_tree_and_string z w) \<and> x < y \<longrightarrow> lt_option (depth z x) (depth z y)))"  
+proof -
+  have "uniqueH_nodes_in_tree (Node n l) w \<longrightarrow> (\<forall>x \<in> set l. uniqueH_nodes_in_tree x w)" by simp
+  hence "uniqueH_nodes_in_tree (Node n l) w \<and> isHonest w n \<longrightarrow> count_node n (Node n l) = 1 \<and> ListSum (map (count_node n) l) = 0"
+    by (smt add_diff_cancel_left' count_node.simps(2) diff_is_0_eq eq_iff isHonest_def le_add1 of_bool_eq(2) uniqueH_nodes_in_tree_def)
+  have "\<forall> z \<in> set l . (H_tree_and_string z w) \<subseteq> (H_tree_and_string (Node n l) w)"
+    by (smt H_tree_and_string_def ListSum_ge add_is_0 count_node.simps(2) eq_iff gr_zeroI image_eqI image_set less_imp_le_nat mem_Collect_eq subsetI)
+  hence "(\<forall>x \<in> (H_tree_and_string (Node n l) w). \<exists>d. Some d = (depth (Node n l) x))"
+    by (metis (no_types, lifting) H_tree_and_string_def mem_Collect_eq none_depth_imp_zero_exist not_less0 option.collapse)
+  have "\<forall>x. (if n = x then (Some 0) else SucOption (ListMaxOption (map (\<lambda>y. depth y x) l))) = Some 0 \<longrightarrow> n = x"
+    by (meson SucOption_ne_Some_0) 
+  hence some0:"(\<forall>x \<in> (H_tree_and_string (Node n l) w). (depth (Node n l) x) = Some 0 \<longrightarrow> n = x)"
+    by (metis depth.simps(2)) 
+  hence "(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> (\<forall>x \<in> (H_tree_and_string (Node n l) w). count_node x (Node n l) = 1)"
+    by (metis (no_types, lifting) H_tree_and_string_def less_one mem_Collect_eq nat_less_le uniqueH_nodes_in_tree_def)
+  hence  "(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> (\<forall>x \<in> (H_tree_and_string (Node n l) w). (depth (Node n l) x) \<noteq> Some 0 \<longrightarrow>
+(\<exists>d. \<exists>z \<in> set l.(depth (Node n l) x) = Some (Suc d) \<and> depth z x = Some d \<and> count_node x z = 1))"
+    using ind_increasing_depth_H_tree_string_aux_exist by blast 
+  hence "(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> 
+(\<forall>x y. \<forall> z \<in> set l. lt_option (depth (Node n l) x) (depth (Node n l) y) \<and> x \<in> (H_tree_and_string z w) \<and> y \<in> (H_tree_and_string z w) 
+\<longrightarrow>  lt_option (depth z x) (depth z y))" 
+  proof -
+    have "(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> 
+(\<forall>x y. \<forall> z \<in> set l. lt_option (depth (Node n l) x) (depth (Node n l) y) \<and> x \<in> (H_tree_and_string z w) \<and> y \<in> (H_tree_and_string z w) 
+\<longrightarrow> (depth (Node n l) y) \<noteq> Some 0)"
+      using lt_option_R_ne_Some_0 by blast
+    hence "(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> 
+(\<forall>x y. \<forall> z \<in> set l. lt_option (depth (Node n l) x) (depth (Node n l) y) \<and> x \<in> (H_tree_and_string z w) \<and> y \<in> (H_tree_and_string z w) 
+\<longrightarrow> y \<noteq> n)"
+      by (metis depth.simps(2))
+    hence "(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> 
+(\<forall>x y. \<forall> z \<in> set l. lt_option (depth (Node n l) x) (depth (Node n l) y) \<and> x \<in> (H_tree_and_string z w) \<and> y \<in> (H_tree_and_string z w) 
+\<longrightarrow> x \<noteq> n)"
+      by (metis (no_types, lifting) H_tree_and_string_def ListSum_ge \<open>uniqueH_nodes_in_tree (Node n l) w 
+\<and> isHonest w n \<longrightarrow> count_node n (Node n l) = 1 \<and> ListSum (map (count_node n) l) = 0\<close> image_eqI isHonest_def le_zero_eq mem_Collect_eq not_less0 set_map)
+    hence "(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> 
+(\<forall>x y. \<forall> z \<in> set l. lt_option (depth (Node n l) x) (depth (Node n l) y) \<and> x \<in> (H_tree_and_string z w) \<and> y \<in> (H_tree_and_string z w) 
+\<longrightarrow> lt_option (depth z x) (depth z y))" using  ind_increasing_depth_H_tree_string_aux_exist ind_increasing_depth_H_tree_string_aux_all
+      by (smt H_tree_and_string_def Suc_leI \<open>uniqueH_nodes_in_tree (Node n l) w \<longrightarrow> (\<forall>x\<in>set l. uniqueH_nodes_in_tree x w)\<close> 
+le_neq_implies_less less_one lt_option.intros lt_option.simps mem_Collect_eq not_less0 not_less_eq option.inject option.simps(3) uniqueH_nodes_in_tree_def zero_exist_imp_none_depth)
+    thus ?thesis
+      by blast
+  qed
+  then show ?thesis
+    using \<open>\<forall>z\<in>set l. H_tree_and_string z w \<subseteq> H_tree_and_string (Node n l) w\<close> \<open>uniqueH_nodes_in_tree (Node n l) w \<longrightarrow> (\<forall>x\<in>set l. uniqueH_nodes_in_tree x w)\<close> by blast 
+qed    
+
+lemma max_exist_honest_node_count_node_positive [simp]: "(count_node (max_exist_honest_node F w) F > 0) \<or> (max_exist_honest_node F w = 0)"
+  proof (induction F)
+    case Empty
+    then show ?case sorry
+  next
+    case (Node x1 x2)
+    then show ?case sorry
+  qed    
     
 lemma colsedFork_height_eq_depth_max_honest_aux [simp]: 
 "closedFork_Hgiven F (H w) \<and> (uniqueH_nodes_in_tree F w) \<and>
 (\<forall> x y. x \<in> (H_tree_and_string F w) \<and> y \<in> (H_tree_and_string F w) \<and> x < y \<longrightarrow> lt_option (depth F x) (depth F y)) 
 \<longrightarrow> (Some (height F) = depth F (max_exist_honest_node F w) \<or> F = Empty)"
-sorry
+proof (induction F)
+  case Empty
+  then show ?case
+    by blast 
+next
+  case (Node n l)
+    hence "((uniqueH_nodes_in_tree (Node n l) w) \<and> (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> 
+(\<forall> z \<in> set l . (uniqueH_nodes_in_tree z w) \<and> (\<forall> x y. x \<in> (H_tree_and_string z w) \<and> y \<in> (H_tree_and_string z w) \<and> x < y \<longrightarrow> lt_option (depth z x) (depth z y)))"
+     using ind_increasing_depth_H_tree_string
+     by blast 
+    hence "closedFork_Hgiven (Node n l) (H w) \<longrightarrow> (\<forall>z \<in> set l. closedFork_Hgiven z (H w))"
+      using closedFork_Hgiven_imp_branches by blast
+    hence "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> 
+(\<forall> z \<in> set l . closedFork_Hgiven z (H w) \<and> (uniqueH_nodes_in_tree z w) \<and> (\<forall> x y. x \<in> (H_tree_and_string z w) \<and> y \<in> (H_tree_and_string z w) \<and> x < y \<longrightarrow> lt_option (depth z x) (depth z y)))"
+      using \<open>uniqueH_nodes_in_tree (Node n l) w \<and> (\<forall>x y. x \<in> H_tree_and_string (Node n l) w \<and> 
+y \<in> H_tree_and_string (Node n l) w \<and> x < y \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y)) 
+\<longrightarrow> (\<forall>z\<in>set l. uniqueH_nodes_in_tree z w \<and> (\<forall>x y. x \<in> H_tree_and_string z w \<and> y \<in> H_tree_and_string z w \<and> x < y \<longrightarrow> lt_option (depth z x) (depth z y)))\<close> by blast
+    hence ih:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow>
+(\<forall> z \<in> set l. (Some (height z) = depth z (max_exist_honest_node z w) \<or> z = Empty)) "
+      using Node.IH by blast
+    then show ?case 
+      proof (cases "n = max_exist_honest_node (Node n l) w")
+        case True
+          hence "n = max_exist_honest_node (Node n l) w" by blast
+          hence "isHonest w n"
+            by (metis max_exist_honest_node_isHonest) 
+          have "0 < count_node n (Node n l)"
+            by simp
+          hence nexisthonest:"n \<in> (H_tree_and_string (Node n l) w)"
+            using H_tree_and_string_def \<open>isHonest w n\<close> isHonest_def by blast
+          hence le:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. max_exist_honest_node z w \<le> n)"
+            by (metis True max_exist_honest_node_ge_branches)
+           hence cn0:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. count_node n z = 0)" using True nexisthonest
+             by (smt ListSum_0 One_nat_def \<open>0 < count_node n (Node n l)\<close> \<open>isHonest w n\<close> add_diff_cancel_left' 
+count_node.simps(2) diff_Suc_1 image_eqI isHonest_def nat_less_le not_less_eq of_bool_eq(2) set_map uniqueH_nodes_in_tree_def)
+            hence lt:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. max_exist_honest_node z w < n \<or> n = 0)"
+              by (metis le less_numeral_extra(3) max_exist_honest_node_count_node_positive order.not_eq_order_implies_strict)
+            then show ?thesis 
+            proof (cases "n = 0")
+              case True
+                hence lt:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. max_exist_honest_node z w = 0)"
+                using le by blast
+                hence lt:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. z = Empty)"
+                  by (metis True ih cn0 option.simps(3) zero_exist_imp_none_depth)
+                then show ?thesis
+                    by (metis Leaf_non_ListOfEmpty \<open>n = max_exist_honest_node (Node n l) w\<close> depth.simps(2) height_Leaf) 
+            next
+              case False
+                hence "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. max_exist_honest_node z w < n)"
+                  using lt by blast
+                have "n \<in> H_tree_and_string (Node n l) w"
+                  by (simp add: nexisthonest)
+                have "depth (Node n l) n = Some 0"
+                  by simp                    
+                hence "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. max_exist_honest_node z w > 0 
+\<longrightarrow> count_node (max_exist_honest_node z w) z > 0)"
+                  by (metis less_irrefl_nat max_exist_honest_node_count_node_positive)
+                hence "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. count_node (max_exist_honest_node z w) z > 0 
+\<longrightarrow> max_exist_honest_node z w \<in> H_tree_and_string (Node n l) w)"
+                  by (smt H_tree_and_string_def ListSum_ge add_diff_cancel_left' count_node.simps(2) 
+diff_is_0_eq image_eqI isHonest_def less_or_eq_imp_le max_exist_honest_node_isHonest mem_Collect_eq not_gr_zero not_le set_map)
+                hence "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. count_node (max_exist_honest_node z w) z = 0)"
+                  using \<open>closedFork_Hgiven (Node n l) (H w) \<and> uniqueH_nodes_in_tree (Node n l) w \<and> 
+(\<forall>x y. x \<in> H_tree_and_string (Node n l) w \<and> y \<in> H_tree_and_string (Node n l) w \<and> x < y \<longrightarrow> lt_option 
+(depth (Node n l) x) (depth (Node n l) y)) \<longrightarrow> (\<forall>z\<in>set l. max_exist_honest_node z w < n)\<close> 
+\<open>depth (Node n l) n = Some 0\<close> lt_option_R_ne_Some_0 nexisthonest by blast
+                hence "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> (\<forall>z \<in> set l. z = Empty)"
+                  by (metis ih option.simps(3) zero_exist_imp_none_depth)
+                then show ?thesis
+                  by (metis True \<open>depth (Node n l) n = Some 0\<close> height.simps(2) not_Leaf_imp_not_List_of_empty) 
+            qed
+      next
+        case False
+          hence "n \<noteq> max_exist_honest_node (Node n l) w"
+            by simp 
+          hence "max_exist_honest_node (Node n l) w = (if isHonest w n 
+then max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) 
+else ListMax (map (\<lambda>x. max_exist_honest_node x w) l))"
+            by simp              
+          hence "max_exist_honest_node (Node n l) w = ListMax (map (\<lambda>x. max_exist_honest_node x w) l)"
+            using False by presburger
+          hence existorempty:"(\<exists>z \<in> set (map (\<lambda>x. max_exist_honest_node x w) l). max_exist_honest_node (Node n l) w = z) \<or> ListOfEmpty l"
+            using ListMax_member ListOfEmpty.simps by blast
+          then show ?thesis 
+          proof (cases "ListOfEmpty l")
+            case True
+            then show ?thesis
+              by (metis False Leaf.intros Leaf_non_ListOfEmpty \<open>max_exist_honest_node (Node n l) w = 
+(if isHonest w n then max n (ListMax (map (\<lambda>x. max_exist_honest_node x w) l)) else ListMax (map (\<lambda>x. max_exist_honest_node x w) l))\<close> 
+closedFork_Hgiven.simps(2) isHonest_def le_0_eq listmax_0 max_def max_exist_honest_node.simps(1)) 
+          next
+            case False
+              hence "(\<exists>z \<in> set l. z \<noteq> Empty)"
+                using not_ListOfEmpty_imp_not_Empty_existence by blast 
+              hence "(\<exists>z \<in> set (map (\<lambda>x. max_exist_honest_node x w) l). max_exist_honest_node (Node n l) w = z)"
+                using False existorempty by blast
+              hence exist:"(\<exists>z \<in> set l. max_exist_honest_node (Node n l) w =  max_exist_honest_node z w)"
+                by (metis (no_types, lifting) imageE image_set)
+              hence all :" (\<forall>z \<in> set l. max_exist_honest_node z w \<in> H_tree_and_string (Node n l) w \<or> max_exist_honest_node z w = 0)"
+                by (metis (full_types, lifting) H_tree_and_string_def ListSum_ge add_is_0 count_node.simps(2) 
+image_eqI le_zero_eq max_exist_honest_member_H_tree_and_string mem_Collect_eq not_gr_zero set_map) 
+                then show ?thesis 
+                proof (cases "max_exist_honest_node (Node n l) w = 0")
+                  case True
+                    hence "(\<forall>z \<in> set l. max_exist_honest_node z w = 0)"
+                      by (metis (full_types) eq_iff le0 max_exist_honest_node_ge_branches)
+                    then obtain z1 where "z1 \<in> set l \<and> max_exist_honest_node z1 w = 0"
+                      using \<open>\<exists>z\<in>set l. z \<noteq> Empty\<close> by blast
+                    hence "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> count_node 0 (Node n l) > 0"
+                      by (metis (no_types, lifting) ListSum_ge \<open>\<exists>z\<in>set l. z \<noteq> Empty\<close> \<open>\<forall>z\<in>set l. max_exist_honest_node z w = 0\<close> 
+add_is_0 count_node.simps(2) gr_zeroI ih image_eqI image_set leD option.distinct(1) zero_exist_imp_none_depth)
+                     hence f1:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+(\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+\<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) \<longrightarrow> count_node 0 (Node n l) = 1"
+                       by (metis H_0 One_nat_def Suc_mono le_less_Suc_eq uniqueH_nodes_in_tree_def)
+                    hence f2:"(\<forall>y \<in> H w. y > 0 \<longrightarrow> count_node y (Node n l) = 0)" using True
+                      by (metis max_exist_honest_node_is_max)
+                    hence f3:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>z \<in> set l. count_node 0 z \<noteq> 0)" using f1 False zero_exist_imp_none_depth ih
+                      by (metis True \<open>n \<noteq> max_exist_honest_node (Node n l) w\<close> ind_increasing_depth_H_tree_string_aux_exist zero_neq_one)
+                         hence f4: "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>z \<in> set l. count_node 0 z = 1)" using f1
+                           by (metis (mono_tags, hide_lams) True \<open>n \<noteq> max_exist_honest_node (Node n l) w\<close> ind_increasing_depth_H_tree_string_aux_exist)
+                         hence f5:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>z \<in> set l. count_node 0 z = 1 \<and> (\<forall>z' \<in> set l. count_node 0 z' = 1 \<longrightarrow> z =z'))" using f1
+                           by (metis unique_node_branches unique_node_def)                   
+                         hence f6:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>z \<in> set l. count_node 0 z = 1 \<and> Some (height z) = depth z 0 \<and> (\<forall>z' \<in> set l. count_node 0 z' = 1 \<longrightarrow> depth z' 0 = depth z 0))" using True f4 ih
+                           by (metis \<open>\<forall>z\<in>set l. max_exist_honest_node z w = 0\<close> count_node.simps(1) zero_neq_one)
+                         hence f7: "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>z \<in> set l. count_node 0 z = 1 \<and> Some (height z) = depth z 0 \<and> (\<forall>z' \<in> set l. count_node 0 z' = 1 \<longrightarrow> depth z' 0 = depth z 0))
+                        \<and> (\<forall>z \<in> set l. count_node 0 z \<le> 1)"  using True f4 ih
+                           using H_0 \<open>closedFork_Hgiven (Node n l) (H w) \<and> uniqueH_nodes_in_tree (Node n l) w \<and> 
+(\<forall>x y. x \<in> H_tree_and_string (Node n l) w \<and> y \<in> H_tree_and_string (Node n l) w \<and> x < y \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y)) 
+\<longrightarrow> (\<forall>z\<in>set l. closedFork_Hgiven z (H w) \<and> uniqueH_nodes_in_tree z w \<and> (\<forall>x y. x \<in> H_tree_and_string z w \<and> y \<in> H_tree_and_string z w \<and> x < y 
+\<longrightarrow> lt_option (depth z x) (depth z y)))\<close> uniqueH_nodes_in_tree_def by blast
+                        hence f8:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<forall>z \<in> set l. (count_node 0 z = 1 \<and> Some (height z) = depth z 0) \<or> (count_node 0 z = 0 \<and> z = Empty))" using True f4 ih
+                          by (metis One_nat_def \<open>\<forall>z\<in>set l. max_exist_honest_node z w = 0\<close> count_node.simps(1) 
+le_eq_less_or_eq less_SucE less_nat_zero_code max_exist_honest_node_ge_member_H_tree_and_string option.discI zero_exist_imp_none_depth)
+                        hence f9: "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<forall>z \<in> set l. (count_node 0 z = 1 \<and> Some (height z) = depth z 0) \<or> 
+                      (count_node 0 z = 0 \<and> z = Empty \<and> depth z 0 = None))" using True f4 ih
+                          by (meson zero_exist_imp_none_depth)                         
+                        hence f10:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>h. \<forall>z \<in> set l. (count_node 0 z = 1 \<and> Some h = depth z 0) \<or> 
+                      (count_node 0 z = 0 \<and> depth z 0 = None))" using True f4 ih f5 f7 f8
+                          by smt
+                        hence f11:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>h. \<forall>z \<in> set l. (count_node 0 z = 1 \<and> Some h = depth z 0 \<and> h = height z) \<or> 
+                      (count_node 0 z = 0 \<and> depth z 0 = None))" using True f4 ih f5 f7 f8
+                          by smt 
+                          hence f12:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>h. \<forall>z \<in> set l. (count_node 0 z = 1 \<and> height z = h \<and> Some h = depth z 0) \<or> (count_node 0 z = 0 \<and> z = Empty))"
+                            by (smt f5 f8) 
+                         hence f13:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>h. \<forall>z \<in> set l. (count_node 0 z = 1 \<and> height z = h \<and> Some h = depth z 0) \<or> (count_node 0 z = 0 \<and> z = Empty) 
+                          \<and> (\<exists>z \<in> set l. (count_node 0 z = 1 \<and> height z = h \<and> Some h = depth z 0)))"
+                           using \<open>\<exists>z\<in>set l. z \<noteq> Empty\<close> by blast
+                         hence f14:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>h. \<forall>z \<in> set l. (count_node 0 z = 1 \<and> height z = h \<and> Some h = depth z 0) \<or> (count_node 0 z = 0 \<and> z = Empty) 
+                          \<and> (\<exists>z \<in> set l. (count_node 0 z = 1 \<and> height z = h \<and> Some h = depth z 0))) \<and> n \<noteq> 0"
+                           using True \<open>n \<noteq> max_exist_honest_node (Node n l) w\<close> by presburger
+                         hence f15:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>h. \<forall>z \<in> set l. (count_node 0 z = 1 \<and> height z = h \<and> Some h = depth z 0) \<or> (count_node 0 z = 0 \<and> z = Empty \<and> depth z 0 = None) 
+                          \<and> (\<exists>z \<in> set l. (count_node 0 z = 1 \<and> height z = h \<and> Some h = depth z 0))) \<and> n \<noteq> 0"
+                           by (meson zero_exist_imp_none_depth)         
+                         hence f16:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> ListMaxOption (map (\<lambda>x. depth x 0) l) = None \<or> (\<exists>x. ListMaxOption (map (\<lambda>x. depth x 0) l) = Some x 
+                      \<and> Some x \<in> set (map (\<lambda>x. depth x 0) l) \<and> (\<forall>y. Some y \<in> set (map (\<lambda>x. depth x 0) l) \<longrightarrow> y \<le> x))" 
+                           using f7 exist_Some_eq_ListMaxOption_ne_None ListMaxOption_Max_Some
+                           by meson
+                         hence f17:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>z \<in> set l. depth z 0 \<noteq> None)" using f10 f3 f15 H_def H_tree_and_string_def
+                               by (meson none_depth_imp_zero_exist)
+                         hence f18:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>x. ListMaxOption (map (\<lambda>x. depth x 0) l) = Some x 
+                      \<and> Some x \<in> set (map (\<lambda>x. depth x 0) l) \<and> (\<forall>y. Some y \<in> set (map (\<lambda>x. depth x 0) l) \<longrightarrow> y \<le> x))" 
+                           using f7 exist_Some_eq_ListMaxOption_ne_None ListMaxOption_Max_Some
+                           by (smt SucOption_def depth.simps(2) f1 f15 map_eq_conv none_depth_imp_zero_exist option.simps(4) zero_neq_one)
+                          hence f19:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>x. ListMaxOption (map (\<lambda>x. depth x 0) l) = Some x 
+                      \<and> Some x \<in> set (map (\<lambda>x. depth x 0) l) \<and> (\<forall>y. Some y \<in> set (map (\<lambda>x. depth x 0) l) \<longrightarrow> y \<le> x))" 
+                            by blast 
+                          hence f20:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>x. ListMaxOption (map (\<lambda>x. depth x 0) l) = Some x 
+                      \<and> Some x \<in> set (map (\<lambda>x. depth x 0) l) \<and> (\<forall>y. Some y \<in> set (map (\<lambda>x. depth x 0) l) \<longrightarrow> y \<le> x))
+                      \<and> (\<exists>h. \<forall>z \<in> set l. (count_node 0 z = 1 \<and> height z = h \<and> Some h = depth z 0) \<or> (count_node 0 z = 0 \<and> z = Empty) 
+                          \<and> (\<exists>z \<in> set l. (count_node 0 z = 1 \<and> height z = h \<and> Some h = depth z 0)))" 
+                            using f15
+                            by meson
+                        hence f21:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>x. ListMaxOption (map (\<lambda>x. depth x 0) l) = Some x \<and> (\<forall>y. Some y \<in> set (map (\<lambda>x. depth x 0) l) \<longrightarrow> y \<le> x)
+                      \<and> Some x \<in> set (map (\<lambda>x. depth x 0) l) \<and> (\<exists>z \<in> set l. (count_node 0 z = 1 \<and> height z = x \<and> Some x = depth z 0)))" using f10 imageE option.sel option.simps(3) set_map list.set_map option.discI
+                          by (smt f6)
+                         hence f22:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>z \<in> set l. ListMaxOption (map (\<lambda>x. depth x 0) l) = Some (height z))"                         
+                           by metis              
+                         hence f23:"(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>z \<in> set l. ListMaxOption (map (\<lambda>x. depth x 0) l) = Some (height z) 
+\<and> (\<exists>y \<in> set l. height z < height y \<longrightarrow> ListMaxOption (map (\<lambda>x. depth x 0) l) \<noteq> Some (height z))) "
+                           by blast   
+                         hence f24 : "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> (\<exists>z \<in> set l. ListMaxOption (map (\<lambda>x. depth x 0) l) = Some (height z) 
+                      \<and> (\<forall> y \<in> set l. height z \<ge> height y))"
+                           by (metis f21 f20 height.simps(1) less_eq_nat.simps(1) zero_neq_one)
+                         hence f25 : "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> ListMaxOption (map (\<lambda>x. depth x 0) l) = Some (ListMax (map height l))"
+                           by (metis (no_types, lifting) False ListMax_member ListOfEmpty.simps Listmax_ge 
+f21 f22 imageE image_eqI le_antisym map_is_Nil_conv set_map)  
+                             hence f26 : "(closedFork_Hgiven (Node n l) (H w) \<and> (uniqueH_nodes_in_tree (Node n l) w) \<and> 
+                      (\<forall> x y. x \<in> (H_tree_and_string (Node n l) w) \<and> y \<in> (H_tree_and_string (Node n l) w) \<and> x < y 
+                      \<longrightarrow> lt_option (depth (Node n l) x) (depth (Node n l) y))) 
+                      \<longrightarrow> depth (Node n l) 0 = Some (Suc (ListMax (map height l)))"
+                               by (smt f1 f15 f21 f6 ind_increasing_depth_H_tree_string_aux_exist option.sel)
+                      then show ?thesis using f15
+                        by (metis Leaf_non_ListOfEmpty True \<open>\<exists>z\<in>set l. z \<noteq> Empty\<close> height.simps(2))
+                next
+                  case False
+                    hence "max_exist_honest_node (Node n l) w > 0"
+                      by simp                                                                               
+                    hence "max_exist_honest_node (Node n l) w =  ListMax (map (\<lambda>x. max_exist_honest_node x w) l)"
+                      using \<open>max_exist_honest_node (Node n l) w = ListMax (map (\<lambda>x. max_exist_honest_node x w) l)\<close> by blast
+                    then obtain z where z:"z \<in> set l \<and> max_exist_honest_node (Node n l) w = max_exist_honest_node z w"
+                      using exist by blast
+                    hence f1:"(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> (\<forall>y \<in> set l. count_node (max_exist_honest_node (Node n l) w) y \<le> 1)"
+                      using ind_uniqueH_nodes_in_tree isHonest_def max_exist_honest_node_isHonest uniqueH_nodes_in_tree_def by blast
+                    hence f2:"(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> (\<forall>y \<in> set l. count_node (max_exist_honest_node (Node n l) w) y = 1 \<longrightarrow> y = z)"
+                    proof -
+                      { fix nn :: nattree
+                        have ff1: "max_exist_honest_node z w \<noteq> 0"
+                          by (metis False \<open>z \<in> set l \<and> max_exist_honest_node (Node n l) w = max_exist_honest_node z w\<close>)
+                        have ff2: "\<And>na. na \<notin> set l \<or> max_exist_honest_node na w = 0 \<or> max_exist_honest_node na w \<in> H w \<and> 0 < count_node (max_exist_honest_node na w) (Node n l)"
+                          using H_tree_and_string_def all by blast
+                        have ff3: "\<And>n bs. count_node (max_exist_honest_node n bs) n \<noteq> 0 \<or> max_exist_honest_node n bs = 0"
+                          using max_exist_honest_node_count_node_positive not_gr_zero by blast
+                        have "count_node (max_exist_honest_node z w) (Node n l) \<noteq> 0"
+                          using ff1 by (metis \<open>z \<in> set l \<and> max_exist_honest_node (Node n l) w = max_exist_honest_node z w\<close> max_exist_honest_node_count_node_positive not_gr_zero)
+                        then have "count_node (max_exist_honest_node z w) nn = 1 \<longrightarrow> nn = z \<or> nn \<notin> set l \<or> \<not> uniqueH_nodes_in_tree (Node n l) w \<or> count_node (max_exist_honest_node (Node n l) w) nn \<noteq> 1"
+                          using ff3 ff2 ff1 by (meson \<open>z \<in> set l \<and> max_exist_honest_node (Node n l) w = max_exist_honest_node z w\<close> ind_uniqueH_nodes_in_tree le_neq_implies_less less_one uniqueH_nodes_in_tree_def unique_node_branches unique_node_def)
+                        then have "nn = z \<or> nn \<notin> set l \<or> \<not> uniqueH_nodes_in_tree (Node n l) w \<or> count_node (max_exist_honest_node (Node n l) w) nn \<noteq> 1"
+                          by (metis \<open>z \<in> set l \<and> max_exist_honest_node (Node n l) w = max_exist_honest_node z w\<close>) }
+                      then show ?thesis
+                        by meson
+                    qed
+                    hence f3:"(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> (\<forall>y \<in> set l. y \<noteq> z \<longrightarrow> count_node (max_exist_honest_node (Node n l) w) y = 0)"
+                      using f1 le_neq_implies_less by blast    
+                    hence f4:"(uniqueH_nodes_in_tree (Node n l) w) \<longrightarrow> (\<forall>y \<in> set l. y \<noteq> z \<longrightarrow> max_exist_honest_node y w < max_exist_honest_node z w)"
+                      by (metis False z le_neq_implies_less less_numeral_extra(3) max_exist_honest_node_count_node_positive max_exist_honest_node_ge_branches)      
+                    hence f5:"\<forall>y \<in> set l. max_exist_honest_node y w \<in> (H_tree_and_string (Node n l) w) \<or> max_exist_honest_node y w = 0"
+                      using all by blast   
+                  then show ?thesis 
+                qed
+          qed
+      qed
+qed
 
-
-  
 lemma closedFork_height_eq_depth_max_honest [simp]: "closedFork F w \<longrightarrow> Some (height F) = depth F (max_honest_node w)"
 proof (cases F)
   case Empty
